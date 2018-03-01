@@ -15,22 +15,21 @@
   <webApplication name="Auth" location="${app.location}"/>
   
   <basicRegistry id="basic" realm=" OpBasicRealm ">
-        <user name="user1" password="security" />
-        <user name="user2" password="security" />
+        <user name="foo" password="bar" />
+        <user name="user" password="password" />
   </basicRegistry>
   
   <keyStore id="defaultKeyStore" password="keypass" />
   
-  <openidConnectProvider id="OP" oauthProviderRef="Oauth" >
+  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="defaultKeyStore" keyAliasName="myOpKeyAlias" >
   </openidConnectProvider>
   <oauthProvider id="Oauth"  >
     <localStore>
-    <client name="rp" secret="secret"
-                displayname="rp"
+    <client name="bluecomputeweb" secret="bluecomputewebs3cret"
+                displayname="bluecomputeweb"
                 grant_types="password"
-                redirect="https://localhost:8443/RelyingPart/rest/health"
-                scope="openid profile scope1 email phone address"
-                preAuthorizedScope="openid"
+                scope="admin blue"
+                preAuthorizedScope="admin blue"
                 enabled="true"/>
     </localStore>
   </oauthProvider>
