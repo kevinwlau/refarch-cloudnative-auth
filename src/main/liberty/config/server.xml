@@ -17,6 +17,12 @@
   <basicRegistry id="basic" realm=" OpBasicRealm ">
         <user name="foo" password="bar" />
         <user name="user" password="password" />
+        <group name="Admin">
+          <member name="user" />
+       </group>
+       <group name="User">
+          <member name="foo" />
+       </group>
   </basicRegistry>
 
   <keyStore id="defaultKeyStore" password="keypass" />
@@ -28,9 +34,12 @@
     <client name="bluecomputeweb" secret="bluecomputewebs3cret"
                 displayname="bluecomputeweb"
                 grant_types="password"
-                scope="admin blue"
-                preAuthorizedScope="admin blue"
-                enabled="true"/>
+                scope="openid profile admin blue"
+                preAuthorizedScope="openid profile admin blue"
+                enabled="true">
+    <redirect>https://localhost:8443/oidcclient/redirect/bluecomputeweb</redirect>
+    <redirect>http://localhost:9083/oidcclient/redirect/bluecomputeweb</redirect>
+    </client>
     </localStore>
   </oauthProvider>
    <oauth-roles>
