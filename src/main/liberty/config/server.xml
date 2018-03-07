@@ -26,7 +26,7 @@
   
   <keyStore id="defaultKeyStore" password="keypass" />
   
-  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="HS256" keyStoreRef="defaultKeyStore" keyAliasName="default"/>
+  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="defaultKeyStore" keyAliasName="default"/>
   <oauthProvider httpsRequired="true" id="Oauth" tokenFormat="mpjwt"  >
     <localStore>
     <client name="bluecomputeweb" secret="bluecomputewebs3cret"
@@ -35,8 +35,8 @@
                 scope="openid profile admin blue"
                 preAuthorizedScope="openid profile admin blue"
                 enabled="true">
-    <redirect>https://localhost:8443/oidcclient/redirect/bluecomputeweb</redirect>
-    <redirect>http://localhost:9083/oidcclient/redirect/bluecomputeweb</redirect>          
+    <redirect>https://localhost:8443/customer/rest/health</redirect>
+    <redirect>http://localhost:9083/customer/rest/health</redirect>          
     </client>
     </localStore>
   </oauthProvider>
@@ -46,7 +46,7 @@
     </authenticated>
   </oauth-roles>
 
-  <jwtBuilder id="jwtBuilder" signatureAlgorithm="HS256"
+  <jwtBuilder id="jwtBuilder" signatureAlgorithm="RS256"
       issuer="https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/"
       sharedKey="testKey"
       />
