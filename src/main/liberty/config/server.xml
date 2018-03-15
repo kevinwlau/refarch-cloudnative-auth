@@ -34,8 +34,8 @@
     <client name="bluecomputeweb" secret="bluecomputewebs3cret"
                 displayname="bluecomputeweb"
                 grant_types="password"
-                scope="openid profile admin blue"
-                preAuthorizedScope="openid profile admin blue"
+                scope="admin blue"
+                preAuthorizedScope="admin blue"
                 enabled="true">
                 
     <redirect>https://localhost:8443/oidcclient/redirect/bluecomputeweb</redirect>
