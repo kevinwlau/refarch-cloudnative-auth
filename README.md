@@ -222,5 +222,5 @@ Once you do this, you see the below messages.
 ```
 
 ### References
-[OpenID Connect Provider](https://www.ibm.com/support/knowledgecenter/SSEQTP_8.5.5/com.ibm.websphere.wlp.doc/ae/twlp_config_oidc_op.html)
-[Configuring a Basic User registry](https://www.ibm.com/support/knowledgecenter/en/SS7K4U_liberty/com.ibm.websphere.wlp.zseries.doc/ae/twlp_sec_basic_registry.html)
+1. [OpenID Connect Provider](https://www.ibm.com/support/knowledgecenter/SSEQTP_8.5.5/com.ibm.websphere.wlp.doc/ae/twlp_config_oidc_op.html)
+2. [Configuring a Basic User registry](https://www.ibm.com/support/knowledgecenter/en/SS7K4U_liberty/com.ibm.websphere.wlp.zseries.doc/ae/twlp_sec_basic_registry.html)
