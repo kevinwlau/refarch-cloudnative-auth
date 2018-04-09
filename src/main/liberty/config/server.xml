@@ -4,6 +4,8 @@
       <feature>microprofile-1.2</feature>
       <feature>openidConnectServer-1.0</feature>
       <feature>jwt-1.0</feature>
+      <feature>appSecurity-2.0</feature>
+      <feature>ssl-1.0</feature>
   </featureManager>
 
   <httpEndpoint httpPort="${default.http.port}" httpsPort="${default.https.port}"
@@ -34,9 +36,10 @@
     <client name="bluecomputeweb" secret="bluecomputewebs3cret"
                 displayname="bluecomputeweb"
                 grant_types="password"
-                scope="admin blue"
-                preAuthorizedScope="admin blue"
-                enabled="true">
+                scope="openid admin blue"
+                preAuthorizedScope="openid admin blue"
+                enabled="true"
+                mapIdentityToRegistryUser="true">
                 
     <redirect>https://localhost:8443/oidcclient/redirect/bluecomputeweb</redirect>
     <redirect>http://localhost:9083/oidcclient/redirect/bluecomputeweb</redirect>
