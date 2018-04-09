@@ -203,7 +203,7 @@ Then you will see something like below.
 
 4. If you are done accessing the application, you can stop your server using the following command.
 
-   `mvn liberty:start-server -DtestServerHttpPort=9085 -DtestServerHttpsPort=9443`
+   `mvn liberty:stop-server -DtestServerHttpPort=9085 -DtestServerHttpsPort=9443`
 
 Once you do this, you see the below messages.
 
@@ -220,6 +220,106 @@ Once you do this, you see the below messages.
 [INFO] Final Memory: 13M/309M
 [INFO] ------------------------------------------------------------------------
 ```
+
+#### Docker file
+
+We are using Docker to containerize the application. With Docker, you can pack, ship, and run applications on a portable, lightweight container that can run anywhere virtually.
+
+```
+FROM websphere-liberty:webProfile7
+MAINTAINER IBM Java engineering at IBM Cloud
+COPY /target/liberty/wlp/usr/servers/defaultServer /config/
+# Install required features if not present, install APM Data Collector
+RUN installUtility install --acceptLicense defaultServer && installUtility install --acceptLicense apmDataCollector-7.4
+RUN /opt/ibm/wlp/usr/extension/liberty_dc/bin/config_liberty_dc.sh -silent /opt/ibm/wlp/usr/extension/liberty_dc/bin/silent_config_liberty_dc.txt
+# Upgrade to production license if URL to JAR provided
+ARG LICENSE_JAR_URL
+RUN \ 
+  if [ $LICENSE_JAR_URL ]; then \
+    wget $LICENSE_JAR_URL -O /tmp/license.jar \
+    && java -jar /tmp/license.jar -acceptLicense /opt/ibm \
+    && rm /tmp/license.jar; \
+  fi
+```
+
+- The `FROM` instruction sets the base image. You're setting the base image to `websphere-liberty:microProfile`.
+- The `MAINTAINER` instruction sets the Author field. Here it is `IBM Java engineering at IBM Cloud`.
+- The `COPY` instruction copies directories and files from a specified source to a destination in the container file system.
+  - You're copying the `/target/liberty/wlp/usr/servers/defaultServer` to the `config` directory in the container.
+  - You're replacing the contents of `/opt/ibm/wlp/usr/shared/` with the contents of `target/liberty/wlp/usr/shared`.
+- The `RUN` instruction runs the commands.
+  - The instruction is a precondition to install all the utilities in the server.xml file. You can use the RUN command to install the utilities on the base image.
+- The `CMD` instruction provides defaults for an executing container.
+
+#### Running the application locally in a docker container
+
+1. Build the docker image.
+
+`docker build -t auth:microprofile .`
+
+Once this is done, you will see something similar to the below messages.
+```
+Successfully built ac9f8efbf322
+Successfully tagged auth:microprofile
+```
+You can see the docker images by using this command.
+
+`docker images`
+
+```
+REPOSITORY                                      TAG                 IMAGE ID            CREATED             SIZE
+auth                                            microprofile        ac9f8efbf322        5 minutes ago       443MB
+```
+
+2. Run the docker image.
+
+`docker run -d -p 9580:9080 -p 7443:9443 --name auth auth:microprofile`
+
+When it is done, you can verify it using the below command.
+
+`docker ps`
+
+You will see something like below.
+
+```
+CONTAINER ID        IMAGE                               COMMAND                  CREATED             STATUS              PORTS                                            NAMES
+b95229488ab9        auth:microprofile                   "/opt/ibm/docker/doc…"   1 second ago        Up 2 seconds        0.0.0.0:9580->9080/tcp, 0.0.0.0:7443->9443/tcp   auth
+8916b347e5dd        catalog:microprofile                "/opt/ibm/wlp/bin/se…"   2 hours ago         Up 2 hours          9443/tcp, 0.0.0.0:9280->9080/tcp                 catalog
+7ad59d6b0a59        ibmcase/bluecompute-elasticsearch   "/run.sh"                2 hours ago         Up 2 hours          0.0.0.0:9200->9200/tcp, 9300/tcp                 elasticsearch
+f0d52b900623        02a2348107d9                        "/opt/ibm/wlp/bin/se…"   2 days ago          Up 2 days           9443/tcp, 0.0.0.0:9180->9080/tcp                 inventory
+736f27b676de        mysql                               "docker-entrypoint.s…"   2 days ago          Up 2 days           0.0.0.0:9041->3306/tcp                           mysql
+```
+
+3. Validate the auth service in the following way.
+
+```
+curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=blue" https://localhost:7443/oidc/endpoint/OP/token
+```
+
+Then you will see something like below.
+
+<p align="center">
+    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/accesstoken_docker.png">
+</p>
+
+5. Once you are done accessing the application, you can come out of the process. 
+
+6. You can also remove the container if desired. This can be done in the following way.
+
+`docker ps`
+
+```
+CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS              PORTS                              NAMES
+b95229488ab9        auth:microprofile            "/opt/ibm/docker/doc…"   1 second ago        Up 2 seconds        0.0.0.0:9580->9080/tcp, 0.0.0.0:7443->9443/tcp   auth
+```
+
+Grab the container id.
+
+- Do `docker stop <CONTAINER ID>`
+In this case it will be, `docker stop b95229488ab9`
+- Do `docker rm <CONTAINER ID>`
+In this case it will be, `docker rm b95229488ab9`
+
 
 ### References
 1. [OpenID Connect Provider](https://www.ibm.com/support/knowledgecenter/SSEQTP_8.5.5/com.ibm.websphere.wlp.doc/ae/twlp_config_oidc_op.html)
