@@ -141,7 +141,11 @@ To build the application, we used maven build. Maven is a project management too
 
 1. Locally in JVM
 
-To run the Orders microservice locally in JVM, please complete the [Building the app](#building-the-app) section.
+To run the Auth microservice locally in JVM, please complete the [Building the app](#building-the-app) section.
+
+2. Locally in Containers
+
+To run the Auth microservice locally in container, you need [Docker](https://www.docker.com/) to be locally present in your system.
 
 ### Locally in JVM
 
@@ -221,6 +225,10 @@ Once you do this, you see the below messages.
 [INFO] ------------------------------------------------------------------------
 ```
 
+### Locally in Containers
+
+To run the application in docker, we first need to define a Docker file.
+
 #### Docker file
 
 We are using Docker to containerize the application. With Docker, you can pack, ship, and run applications on a portable, lightweight container that can run anywhere virtually.
@@ -253,7 +261,31 @@ RUN \
 
 #### Running the application locally in a docker container
 
-1. Build the docker image.
+1. Make sure you copied your SSL certificate in a file to later move to the rest protected services in the backend.
+
+Since we are using default keystore in our server, we need to get the key from the keystore of the OpenID Provider and put it in the truststore of the backend services that are protected.
+
+Use the below lines to copy the SSL certificate from the Authentication server.
+
+```
+cd target/liberty/wlp/usr/servers/defaultServer/resources/security
+
+keytool -exportcert -keystore key.jks -storepass keypass -alias default -file libertyOP.cer
+```
+
+When this is done you see something like below.
+
+```
+Certificate stored in file <libertyOP.cer>
+```
+
+Then get back to the home folder of Auth service as below.
+
+```
+cd /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth
+```
+
+2. Build the docker image.
 
 `docker build -t auth:microprofile .`
 
@@ -271,7 +303,7 @@ REPOSITORY                                      TAG                 IMAGE ID    
 auth                                            microprofile        ac9f8efbf322        5 minutes ago       443MB
 ```
 
-2. Run the docker image.
+3. Run the docker image.
 
 `docker run -d -p 9580:9080 -p 7443:9443 --name auth auth:microprofile`
 
@@ -290,7 +322,7 @@ f0d52b900623        02a2348107d9                        "/opt/ibm/wlp/bin/se…"
 736f27b676de        mysql                               "docker-entrypoint.s…"   2 days ago          Up 2 days           0.0.0.0:9041->3306/tcp                           mysql
 ```
 
-3. Validate the auth service in the following way.
+4. Validate the auth service in the following way.
 
 ```
 curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=blue" https://localhost:7443/oidc/endpoint/OP/token
