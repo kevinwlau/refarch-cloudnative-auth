@@ -37,9 +37,6 @@
                 preAuthorizedScope="openid admin blue"
                 enabled="true"
                 mapIdentityToRegistryUser="true">
-                
-    <redirect>https://localhost:8443/oidcclient/redirect/bluecomputeweb</redirect>
-    <redirect>http://localhost:9083/oidcclient/redirect/bluecomputeweb</redirect>
     </client>
     </localStore>
   </oauthProvider>
