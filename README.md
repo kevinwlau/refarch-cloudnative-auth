@@ -147,6 +147,19 @@ To run the Auth microservice locally in JVM, please complete the [Building the a
 
 To run the Auth microservice locally in container, you need [Docker](https://www.docker.com/) to be locally present in your system.
 
+3. Locally in Minikube
+
+To run the Auth application locally on your laptop on a Kubernetes-based environment such as Minikube (which is meant to be a small development environment) we first need to get few tools installed:
+
+- [Kubectl](https://kubernetes.io/docs/user-guide/kubectl-overview/) (Kubernetes CLI) - Follow the instructions [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to install it on your platform.
+- [Helm](https://github.com/kubernetes/helm) (Kubernetes package manager) - Follow the instructions [here](https://github.com/kubernetes/helm/blob/master/docs/install.md) to install it on your platform.
+
+Finally, we must create a Kubernetes Cluster. As already said before, we are going to use Minikube:
+
+- [Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) - Create a single node virtual cluster on your workstation. Follow the instructions [here](https://kubernetes.io/docs/tasks/tools/install-minikube/) to get Minikube installed on your workstation.
+
+We not only recommend to complete the three Minikube installation steps on the link above but also read the [Running Kubernetes Locally via Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) page for getting more familiar with Minikube. We can learn there interesting things such as reusing our Docker daemon, getting the Minikube's ip or opening the Minikube's dashboard for GUI interaction with out Kubernetes Cluster.
+
 ### Locally in JVM
 
 1. Make sure you copied your SSL certificate in a file to later move to the rest protected services in the backend.
@@ -351,6 +364,177 @@ Grab the container id.
 In this case it will be, `docker stop b95229488ab9`
 - Do `docker rm <CONTAINER ID>`
 In this case it will be, `docker rm b95229488ab9`
+
+### Locally in Minikube
+
+#### Setting up your environment
+
+1. Start your minikube. Run the below command.
+
+`minikube start`
+
+You will see output similar to this.
+
+```
+Setting up certs...
+Connecting to cluster...
+Setting up kubeconfig...
+Starting cluster components...
+Kubectl is now configured to use the cluster.
+```
+2. To install Tiller which is a server side component of Helm, initialize helm. Run the below command.
+
+`helm init`
+
+If it is successful, you will see the below output.
+
+```
+$HELM_HOME has been configured at /Users/user@ibm.com/.helm.
+
+Tiller (the helm server side component) has been installed into your Kubernetes Cluster.
+Happy Helming!
+```
+3. Check if your tiller is available. Run the below command.
+
+`kubectl get deployment tiller-deploy --namespace kube-system`
+
+If it available, you can see the availability as below.
+
+```
+NAME            DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+tiller-deploy   1         1         1            1           1m
+```
+
+4. Verify your helm before proceeding like below.
+
+`helm version`
+
+You will see the below output.
+
+```
+Client: &version.Version{SemVer:"v2.4.2", GitCommit:"82d8e9498d96535cc6787a6a9194a76161d29b4c", GitTreeState:"clean"}
+Server: &version.Version{SemVer:"v2.5.0", GitCommit:"012cb0ac1a1b2f888144ef5a67b8dab6c2d45be6", GitTreeState:"clean"}
+```
+
+#### Running the application on Minikube
+
+1. Make sure you copied your SSL certificate in a file to later move to the rest protected services in the backend.
+
+Since we are using default keystore in our server, we need to get the key from the keystore of the OpenID Provider and put it in the truststore of the backend services that are protected.
+
+Use the below lines to copy the SSL certificate from the Authentication server.
+
+```
+cd target/liberty/wlp/usr/servers/defaultServer/resources/security
+
+keytool -exportcert -keystore key.jks -storepass keypass -alias default -file libertyOP.cer
+```
+
+When this is done you see something like below.
+
+```
+Certificate stored in file <libertyOP.cer>
+```
+
+Then get back to the home folder of Auth service as below.
+
+```
+cd /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth
+```
+2. Build the docker image.
+
+Before building the docker image, set the docker environment.
+
+- Run the below command.
+
+`minikube docker-env`
+
+You will see the output similar to this.
+
+```
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_HOST="tcp://192.168.99.100:2376"
+export DOCKER_CERT_PATH="/Users/user@ibm.com/.minikube/certs"
+export DOCKER_API_VERSION="1.23"
+# Run this command to configure your shell:
+# eval $(minikube docker-env)
+```
+- For configuring your shell, run the below command.
+
+`eval $(minikube docker-env)`
+
+- Now run the docker build.
+
+`docker build -t auth:v1.0.0 .`
+
+If it is a success, you will see the below output.
+
+```
+Successfully built d884278b44f2
+Successfully tagged auth:v1.0.0
+```
+2. Run the helm chart as below.
+
+Before running the helm chart in minikube, access [values.yaml](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-inventory/blob/microprofile/inventory/chart/inventory/values.yaml) and replace the repository with the below.
+
+`repository: auth`
+
+Then run the helm chart 
+
+`helm install --name=auth chart/auth`
+
+You will see message like below.
+
+```
+==> v1beta1/Deployment
+NAME             DESIRED  CURRENT  UP-TO-DATE  AVAILABLE  AGE
+auth-deployment  1        1        1           0          0s
+```
+Please wait till your deployment is ready. To verify run the below command and you should see the availability.
+
+`kubectl get deployments`
+
+You will see something like below.
+
+```
+==> v1beta1/Deployment
+NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+auth-deployment   1         1         1            1           16m
+```
+
+3. Validate the auth service in the following way.
+
+- To get the IP, Run this command.
+
+`minikube ip`
+
+You will see something like below.
+
+```
+192.168.99.100
+```
+
+- To get the port, run this command.
+
+`kubectl get service auth-service`
+
+You will see something like below.
+
+```
+NAME           CLUSTER-IP     EXTERNAL-IP   PORT(S)                         AGE
+auth-service   10.97.21.132   <nodes>       9080:30412/TCP,9443:30160/TCP   19m
+```
+You can now do the below to check if your auth service is working properly.
+
+```
+curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=blue" https://192.168.99.100:30160/oidc/endpoint/OP/token
+```
+
+Then you will see something like below.
+
+<p align="center">
+    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/accesstoken_minikube.png">
+</p>
 
 
 ### References
