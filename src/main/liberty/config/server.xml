@@ -3,7 +3,6 @@
   <featureManager>
       <feature>microprofile-1.2</feature>
       <feature>openidConnectServer-1.0</feature>
-      <feature>jwt-1.0</feature>
   </featureManager>
 
   <httpEndpoint httpPort="${default.http.port}" httpsPort="9444"
@@ -38,9 +37,6 @@
                 preAuthorizedScope="openid admin blue"
                 enabled="true"
                 mapIdentityToRegistryUser="true">
-                
-    <redirect>https://localhost:8443/oidcclient/redirect/bluecomputeweb</redirect>
-    <redirect>http://localhost:9083/oidcclient/redirect/bluecomputeweb</redirect>
     </client>
     </localStore>
   </oauthProvider>
