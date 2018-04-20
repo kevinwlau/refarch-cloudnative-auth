@@ -46,4 +46,13 @@
     </authenticated>
   </oauth-roles>
 
+  <mpJwt id="jwtConsumer"
+    jwksUri="https://localhost:9444/oidc/endpoint/OP/jwk"
+    issuer="https://localhost:9444/oidc/endpoint/OP"/>
+
+  <jwtBuilder id="jwtBuilder" signatureAlgorithm="HS256"
+      issuer="https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/"
+      sharedKey="testKey"
+      />
+
 </server>
