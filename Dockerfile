@@ -3,10 +3,6 @@ FROM websphere-liberty:microProfile
 MAINTAINER IBM Java engineering at IBM Cloud
 
 COPY /target/liberty/wlp/usr/servers/defaultServer /config/
-#COPY /target/liberty/wlp/usr/servers/defaultServer/resources /output/resources
-#COPY /target/liberty/wlp/usr/servers/defaultServer /opt/ibm/wlp/output/
-#COPY key.jks /output/resources/security/key.jks
-#COPY ltpa.keys /output/resources/security/ltpa.keys
 
 # Install required features if not present, install APM Data Collector
 
