@@ -61,3 +61,11 @@ spec:
             value: "{{ .Values.service.servicePort }}"
           - name: APPLICATION_NAME
             value: "{{ .Release.Name }}"
+        volumeMounts:
+        - name: keystorevol
+          mountPath: "/etc/keystorevol"
+          readOnly: true
+      volumes:
+      - name: keystorevol
+        secret:
+          secretName: keystoresecret

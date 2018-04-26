@@ -24,9 +24,12 @@
        </group>
   </basicRegistry>
 
-  <keyStore id="defaultKeyStore" password="keypass" />
+  <!--keyStore id="defaultKeyStore" password="keypass" /-->
   
-  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="defaultKeyStore" keyAliasName="default"/>
+  <ssl id="defaultSSLConfig" keyStoreRef="bcKeyStore"/>
+  <keyStore id="bcKeyStore" location="/etc/keystorevol/BCKeyStoreFile.jks" type="JKS" password="password" />
+  
+  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="bcKeyStore" keyAliasName="bckey"/>
   <oauthProvider httpsRequired="true" id="Oauth" tokenFormat="mpjwt"  >
 
     <localStore>
