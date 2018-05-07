@@ -60,8 +60,8 @@ This project demonstrates how to authenticate the API user using [OpenID Connect
 
 Following the [OpenID Connect endpoint URLs](https://www.ibm.com/support/knowledgecenter/en/SSEQTP_8.5.5/com.ibm.websphere.wlp.doc/ae/rwlp_oidc_endpoint_urls.html), the Authorization server exposes both an authorization URI and a token URI.
 
-- GET `/bluecomputeweb/OP/authorize`
-- POST `/bluecomputeweb/OP/token`
+- GET `/OP/authorize`
+- POST `/OP/token`
 
 The BlueCompute reference application supports the following clients and grant types:
 
@@ -71,23 +71,7 @@ The BlueCompute application has one scope, `blue`.
 
 ### Implementation
 
-#### [Liberty app accelerator](https://liberty-app-accelerator.wasdev.developer.ibm.com/start/)
-
-For Liberty, there is nice tool called [Liberty Accelerator](https://liberty-app-accelerator.wasdev.developer.ibm.com/start/) that generates a simple project based upon your configuration. Using this, you can build and deploy to Liberty either using the Maven or Gradle build.
-
-<p align="center">
-    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/LibertyAcc_Home.png">
-</p>
-
-Just check the options of your choice and click Generate project. You can either Download it as a zip or you can create git project.
-
-<p align="center">
-    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/LibertyAcc_PrjGen.png">
-</p>
-
-Once you are done with this, you will have a sample microprofile based application that you can deploy on Liberty.
-
-Using Liberty Accelerator is your choice. You can also create the entire project manually, but using Liberty Accelerator will make things easier.
+Configured as a OpenID Connect Provider using WebSphere Liberty.
 
 ### Features
 
@@ -139,15 +123,9 @@ To build the application, we used maven build. Maven is a project management too
 
 ### Pre-requisites
 
-1. Locally in JVM
+For any of the below methods, the application needs a keystore to be set. In our case, we are using a custom Keystore with self signed certificate. You can follow the instructions for minikube [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/Keystore/README.md#locally-in-minikube) and icp [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/Keystore/README.md#remotely-in-icp).
 
-To run the Auth microservice locally in JVM, please complete the [Building the app](#building-the-app) section.
-
-2. Locally in Containers
-
-To run the Auth microservice locally in container, you need [Docker](https://www.docker.com/) to be locally present in your system.
-
-3. Locally in Minikube
+1. Locally in Minikube
 
 To run the Auth application locally on your laptop on a Kubernetes-based environment such as Minikube (which is meant to be a small development environment) we first need to get few tools installed:
 
