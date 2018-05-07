@@ -418,29 +418,8 @@ Server: &version.Version{SemVer:"v2.5.0", GitCommit:"012cb0ac1a1b2f888144ef5a67b
 
 #### Running the application on Minikube
 
-1. Make sure you copied your SSL certificate in a file to later move to the rest protected services in the backend.
+1. Make sure your keystore is set before proceeding following the instructions [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/Kube_Jobs/README.md). 
 
-Since we are using default keystore in our server, we need to get the key from the keystore of the OpenID Provider and put it in the truststore of the backend services that are protected.
-
-Use the below lines to copy the SSL certificate from the Authentication server.
-
-```
-cd target/liberty/wlp/usr/servers/defaultServer/resources/security
-
-keytool -exportcert -keystore key.jks -storepass keypass -alias default -file libertyOP.cer
-```
-
-When this is done you see something like below.
-
-```
-Certificate stored in file <libertyOP.cer>
-```
-
-Then get back to the home folder of Auth service as below.
-
-```
-cd /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth
-```
 2. Build the docker image.
 
 Before building the docker image, set the docker environment.
