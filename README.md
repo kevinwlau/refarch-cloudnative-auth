@@ -138,210 +138,17 @@ Finally, we must create a Kubernetes Cluster. As already said before, we are goi
 
 We not only recommend to complete the three Minikube installation steps on the link above but also read the [Running Kubernetes Locally via Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) page for getting more familiar with Minikube. We can learn there interesting things such as reusing our Docker daemon, getting the Minikube's ip or opening the Minikube's dashboard for GUI interaction with out Kubernetes Cluster.
 
-### Locally in JVM
+2. Remotely in ICP
 
-1. Make sure you copied your SSL certificate in a file to later move to the rest protected services in the backend.
+[IBM Cloud Private Cluster](https://www.ibm.com/cloud/private)
 
-Since we are using default keystore in our server, we need to get the key from the keystore of the OpenID Provider and put it in the truststore of the backend services that are protected.
+Create a Kubernetes cluster in an on-premise datacenter. The community edition (IBM Cloud private-ce) is free of charge.
+Follow the instructions [here](https://www.ibm.com/support/knowledgecenter/en/SSBS6K_2.1.0.2/installing/install_containers_CE.html) to install IBM Cloud private-ce.
 
-Use the below lines to copy the SSL certificate from the Authentication server.
+[Helm](https://github.com/kubernetes/helm) (Kubernetes package manager)
 
-```
-cd target/liberty/wlp/usr/servers/defaultServer/resources/security
-
-keytool -exportcert -keystore key.jks -storepass keypass -alias default -file libertyOP.cer
-```
-
-When this is done you see something like below.
-
-```
-Certificate stored in file <libertyOP.cer>
-```
-
-Then get back to the home folder of Auth service as below.
-
-```
-cd /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth
-```
-
-2. Start your server.
-
-   `mvn liberty:start-server -DtestServerHttpPort=9085 -DtestServerHttpsPort=9443`
-
-   You will see the below.
-   
-```
-[INFO] Starting server defaultServer.
-[INFO] Server defaultServer started with process ID 94296.
-[INFO] Waiting up to 30 seconds for server confirmation:  CWWKF0011I to be found in /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth/target/liberty/wlp/usr/servers/defaultServer/logs/messages.log
-[INFO] CWWKM2010I: Searching for CWWKF0011I in /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth/target/liberty/wlp/usr/servers/defaultServer/logs/messages.log. This search will timeout after 30 seconds.
-[INFO] CWWKM2015I: Match number: 1 is [16/3/18 16:41:04:003 CDT] 0000001a com.ibm.ws.kernel.feature.internal.FeatureManager            A CWWKF0011I: The server defaultServer is ready to run a smarter planet..
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 34.004 s
-[INFO] Finished at: 2018-03-16T16:41:04-05:00
-[INFO] Final Memory: 13M/309M
-[INFO] ------------------------------------------------------------------------
-```
-3. Validate the auth service in the following way.
-
-```
-curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=blue" https://localhost:9443/oidc/endpoint/OP/token
-```
-
-Then you will see something like below.
-
-<p align="center">
-    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/accesstoken.png">
-</p>
-
-4. If you are done accessing the application, you can stop your server using the following command.
-
-   `mvn liberty:stop-server -DtestServerHttpPort=9085 -DtestServerHttpsPort=9443`
-
-Once you do this, you see the below messages.
-
-```
-[INFO] CWWKM2001I: Invoke command is [/Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth/target/liberty/wlp/bin/server, stop, defaultServer].
-[INFO] objc[94536]: Class JavaLaunchHelper is implemented in both /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/bin/java (0x1016294c0) and /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/libinstrument.dylib (0x1017234e0). One of the two will be used. Which one is undefined.
-[INFO] Stopping server defaultServer.
-[INFO] Server defaultServer stopped.
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 2.213 s
-[INFO] Finished at: 2018-03-16T16:44:48-05:00
-[INFO] Final Memory: 13M/309M
-[INFO] ------------------------------------------------------------------------
-```
-
-### Locally in Containers
-
-To run the application in docker, we first need to define a Docker file.
-
-#### Docker file
-
-We are using Docker to containerize the application. With Docker, you can pack, ship, and run applications on a portable, lightweight container that can run anywhere virtually.
-
-```
-FROM websphere-liberty:webProfile7
-MAINTAINER IBM Java engineering at IBM Cloud
-COPY /target/liberty/wlp/usr/servers/defaultServer /config/
-# Install required features if not present, install APM Data Collector
-RUN installUtility install --acceptLicense defaultServer && installUtility install --acceptLicense apmDataCollector-7.4
-RUN /opt/ibm/wlp/usr/extension/liberty_dc/bin/config_liberty_dc.sh -silent /opt/ibm/wlp/usr/extension/liberty_dc/bin/silent_config_liberty_dc.txt
-# Upgrade to production license if URL to JAR provided
-ARG LICENSE_JAR_URL
-RUN \ 
-  if [ $LICENSE_JAR_URL ]; then \
-    wget $LICENSE_JAR_URL -O /tmp/license.jar \
-    && java -jar /tmp/license.jar -acceptLicense /opt/ibm \
-    && rm /tmp/license.jar; \
-  fi
-```
-
-- The `FROM` instruction sets the base image. You're setting the base image to `websphere-liberty:microProfile`.
-- The `MAINTAINER` instruction sets the Author field. Here it is `IBM Java engineering at IBM Cloud`.
-- The `COPY` instruction copies directories and files from a specified source to a destination in the container file system.
-  - You're copying the `/target/liberty/wlp/usr/servers/defaultServer` to the `config` directory in the container.
-  - You're replacing the contents of `/opt/ibm/wlp/usr/shared/` with the contents of `target/liberty/wlp/usr/shared`.
-- The `RUN` instruction runs the commands.
-  - The instruction is a precondition to install all the utilities in the server.xml file. You can use the RUN command to install the utilities on the base image.
-- The `CMD` instruction provides defaults for an executing container.
-
-#### Running the application locally in a docker container
-
-1. Make sure you copied your SSL certificate in a file to later move to the rest protected services in the backend.
-
-Since we are using default keystore in our server, we need to get the key from the keystore of the OpenID Provider and put it in the truststore of the backend services that are protected.
-
-Use the below lines to copy the SSL certificate from the Authentication server.
-
-```
-cd target/liberty/wlp/usr/servers/defaultServer/resources/security
-
-keytool -exportcert -keystore key.jks -storepass keypass -alias default -file libertyOP.cer
-```
-
-When this is done you see something like below.
-
-```
-Certificate stored in file <libertyOP.cer>
-```
-
-Then get back to the home folder of Auth service as below.
-
-```
-cd /Users/user@ibm.com/BlueCompute/refarch-cloudnative-auth
-```
-
-2. Build the docker image.
-
-`docker build -t auth:microprofile .`
-
-Once this is done, you will see something similar to the below messages.
-```
-Successfully built ac9f8efbf322
-Successfully tagged auth:microprofile
-```
-You can see the docker images by using this command.
-
-`docker images`
-
-```
-REPOSITORY                                      TAG                 IMAGE ID            CREATED             SIZE
-auth                                            microprofile        ac9f8efbf322        5 minutes ago       443MB
-```
-
-3. Run the docker image.
-
-`docker run -d -p 9580:9080 -p 7443:9443 --name auth auth:microprofile`
-
-When it is done, you can verify it using the below command.
-
-`docker ps`
-
-You will see something like below.
-
-```
-CONTAINER ID        IMAGE                               COMMAND                  CREATED             STATUS              PORTS                                            NAMES
-b95229488ab9        auth:microprofile                   "/opt/ibm/docker/doc…"   1 second ago        Up 2 seconds        0.0.0.0:9580->9080/tcp, 0.0.0.0:7443->9443/tcp   auth
-8916b347e5dd        catalog:microprofile                "/opt/ibm/wlp/bin/se…"   2 hours ago         Up 2 hours          9443/tcp, 0.0.0.0:9280->9080/tcp                 catalog
-7ad59d6b0a59        ibmcase/bluecompute-elasticsearch   "/run.sh"                2 hours ago         Up 2 hours          0.0.0.0:9200->9200/tcp, 9300/tcp                 elasticsearch
-f0d52b900623        02a2348107d9                        "/opt/ibm/wlp/bin/se…"   2 days ago          Up 2 days           9443/tcp, 0.0.0.0:9180->9080/tcp                 inventory
-736f27b676de        mysql                               "docker-entrypoint.s…"   2 days ago          Up 2 days           0.0.0.0:9041->3306/tcp                           mysql
-```
-
-4. Validate the auth service in the following way.
-
-```
-curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=blue" https://localhost:7443/oidc/endpoint/OP/token
-```
-
-Then you will see something like below.
-
-<p align="center">
-    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/accesstoken_docker.png">
-</p>
-
-5. Once you are done accessing the application, you can come out of the process. 
-
-6. You can also remove the container if desired. This can be done in the following way.
-
-`docker ps`
-
-```
-CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS              PORTS                              NAMES
-b95229488ab9        auth:microprofile            "/opt/ibm/docker/doc…"   1 second ago        Up 2 seconds        0.0.0.0:9580->9080/tcp, 0.0.0.0:7443->9443/tcp   auth
-```
-
-Grab the container id.
-
-- Do `docker stop <CONTAINER ID>`
-In this case it will be, `docker stop b95229488ab9`
-- Do `docker rm <CONTAINER ID>`
-In this case it will be, `docker rm b95229488ab9`
+Follow the instructions [here](https://github.com/kubernetes/helm/blob/master/docs/install.md) to install it on your platform.
+If using IBM Cloud Private version 2.1.0.2 or newer, we recommend you follow these [instructions](https://www.ibm.com/support/knowledgecenter/SSBS6K_2.1.0.2/app_center/create_helm_cli.html) to install helm.
 
 ### Locally in Minikube
 
@@ -492,6 +299,169 @@ Then you will see something like below.
 <p align="center">
     <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/accesstoken_minikube.png">
 </p>
+
+### Remotely in ICP
+
+[IBM Cloud Private](https://www.ibm.com/cloud/private)
+
+IBM Private Cloud has all the advantages of public cloud but is dedicated to single organization. You can have your own security requirements and customize the environment as well. Basically it has tight security and gives you more control along with scalability and easy to deploy options. You can run it externally or behind the firewall of your organization.
+
+Basically this is an on-premise platform.
+
+Includes docker container manager
+Kubernetes based container orchestrator
+Graphical user interface
+You can find the detailed installation instructions for IBM Cloud Private [here](https://www.ibm.com/support/knowledgecenter/en/SSBS6K_2.1.0.2/installing/install_containers_CE.html)
+
+#### Pushing the image to Private Registry
+
+1. Now run the docker build.
+
+`docker build -t auth:v1.0.0 .`
+
+If it is a success, you will see the below output.
+
+```
+Successfully built d884278b44f2
+Successfully tagged auth:v1.0.0
+```
+
+2. Tag the image to your private registry.
+
+`docker tag auth:v1.0.0 <Your ICP registry>/auth:v1.0.0`
+
+3. Push the image to your private registry.
+
+`docker push <Your ICP registry>/auth:v1.0.0`
+
+You should see something like below.
+
+```
+v1.0.0: digest: sha256:0e13f71a1ab34830c895e34c399d4a7d435a34af6a6d347f898213bfa76f33de size: 3873
+```
+
+#### Running the application on ICP
+
+1. Your [IBM Cloud Private Cluster](https://www.ibm.com/cloud/private) should be up and running.
+
+2. Log in to the IBM Cloud Private. 
+
+<p align="center">
+    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/icp_dashboard.png">
+</p>
+
+3. Go to `admin > Configure Client`.
+
+<p align="center">
+    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/client_config.png">
+</p>
+
+4. Grab the kubectl configuration commands.
+
+<p align="center">
+    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/kube_cmds.png">
+</p>
+
+5. Run those commands in your terminal.
+
+6. If successful, you should see something like below.
+
+```
+Switched to context "xxx-cluster.icp-context".
+```
+7. Run the below command.
+
+`helm init --client-only`
+
+You will see the below
+
+```
+$HELM_HOME has been configured at /Users/user@ibm.com/.helm.
+Not installing Tiller due to 'client-only' flag having been set
+Happy Helming!
+```
+
+8. Verify the helm version
+
+`helm version --tls`
+
+You will see something like below.
+
+```
+Client: &version.Version{SemVer:"v2.7.2+icp", GitCommit:"d41a5c2da480efc555ddca57d3972bcad3351801", GitTreeState:"dirty"}
+Server: &version.Version{SemVer:"v2.7.2+icp", GitCommit:"d41a5c2da480efc555ddca57d3972bcad3351801", GitTreeState:"dirty"}
+```
+
+9. Before running the helm chart in minikube, access [values.yaml](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-inventory/blob/microprofile/catalog/chart/catalog/values.yaml) and replace the repository with the below.
+
+`repository: <Your IBM Cloud Private Docker registry>`
+
+Then run the helm chart.
+
+`helm install --name=auth chart/auth --tls`
+
+You will see message like below.
+
+```
+==> v1beta1/Deployment
+NAME             DESIRED  CURRENT  UP-TO-DATE  AVAILABLE  AGE
+auth-deployment  1        1        1           0          1s
+```
+Please wait till your deployment is ready. To verify run the below command and you should see the availability.
+
+`kubectl get deployments`
+
+You will see something like below.
+
+```
+==> v1beta1/Deployment
+NAME                               DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+auth-deployment                    1         1         1            1           2m
+```
+
+10. To test if your application works, follow these steps.
+
+- To get the IP, Run this command.
+
+`kubectl cluster-info`
+
+You will see something like below.
+
+```
+Kubernetes master is running at https://172.16.40.4:8001
+catalog-ui is running at https://172.16.40.4:8001/api/v1/namespaces/kube-system/services/catalog-ui/proxy
+Heapster is running at https://172.16.40.4:8001/api/v1/namespaces/kube-system/services/heapster/proxy
+icp-management-ingress is running at https://172.16.40.4:8001/api/v1/namespaces/kube-system/services/icp-management-ingress/proxy
+image-manager is running at https://172.16.40.4:8001/api/v1/namespaces/kube-system/services/image-manager/proxy
+KubeDNS is running at https://172.16.40.4:8001/api/v1/namespaces/kube-system/services/kube-dns/proxy
+platform-ui is running at https://172.16.40.4:8001/api/v1/namespaces/kube-system/services/platform-ui/proxy
+```
+
+Grab the Kubernetes master ip and in this case, `<YourClusterIP>` will be `172.16.40.4`.
+
+- To get the port, run this command.
+
+`kubectl get service auth-service`
+
+You will see something like below.
+
+```
+NAME              CLUSTER-IP     EXTERNAL-IP   PORT(S)                         AGE
+auth-service      10.10.10.170   <nodes>       9080:31481/TCP,9443:32145/TCP   4m
+```
+
+You can now do the below to check if your auth service is working properly.
+
+```
+curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=blue" https://172.16.40.4:32145/oidc/endpoint/OP/token
+```
+
+Then you will see something like below.
+
+<p align="center">
+    <img src="https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/static/imgs/accesstoken_minikube.png">
+</p>
+
 
 
 ### References
