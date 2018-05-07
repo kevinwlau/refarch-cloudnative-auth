@@ -18,12 +18,9 @@
 6. [Building the app](#building-the-app)
 7. [Running the app and stopping it](#running-the-app-and-stopping-it)
     1. [Pre-requisites](#pre-requisites)
-    2. [Locally in JVM](#locally-in-jvm)
-    3. [Locally in Containers](#locally-in-containers)
-    4. [Locally in Minikube](#locally-in-minikube)
-    5. [Remotely in ICP](#remotely-in-icp)
-8. [DevOps Strategy](#devops-strategy)
-9. [References](#references)
+    2. [Locally in Minikube](#locally-in-minikube)
+    3. [Remotely in ICP](#remotely-in-icp)
+8. [References](#references)
 
 ### Introduction
 
