@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define authServiceName" -}}
+{{- define "authServiceName" -}}
   {{- .Release.Name }}-{{ .Values.service.name -}}
 {{- end -}}
 
