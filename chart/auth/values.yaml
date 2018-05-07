@@ -3,7 +3,7 @@
 replicaCount: 1
 
 image:
-  repository: auth
+  repository: registry.csplab.cloudns.cx/microprofile/auth-mp
   tag: v1.0.0
   pullPolicy: IfNotPresent
   resources:
