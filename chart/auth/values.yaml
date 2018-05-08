@@ -15,7 +15,7 @@ service:
   internalPort: 8080
 
 ingress:
-  enabled: true
+  enabled: false
   hostname: auth.bluecompute.com
   path: /oauth
 
