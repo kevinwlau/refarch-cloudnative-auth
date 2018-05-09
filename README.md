@@ -74,7 +74,7 @@ Configured as a OpenID Connect Provider using WebSphere Liberty.
 
 1. OpenID Connect Provider
 
-Configure a Liberty server to act as an OpenID Connect Provider by enabling the openidConnectServer-1.0 feature in Liberty. The ssl-1.0 feature is also required for the openidConnectServer-1.0 feature. This OpenID Connect provider is built on the top OAuth Provider. So, the oauth provider should be configured as well along with the OpenID Connect provider. 
+Configure a Liberty server to act as an OpenID Connect Provider by enabling the openidConnectServer-1.0 feature in Liberty. The ssl-1.0 feature is also required for the openidConnectServer-1.0 feature. This OpenID Connect provider is built on the top of OAuth Provider. So, the oauth provider should be configured as well along with the OpenID Connect provider. 
 
 2. Basic User Registry
 
@@ -120,6 +120,8 @@ To build the application, we used maven build. Maven is a project management too
 
 ### Pre-requisites
 
+To run the Auth microservice, please complete the [Building the app](#building-the-app) section before proceeding to any of the following steps.
+
 For any of the below methods, the application needs a keystore to be set. In our case, we are using a custom Keystore with self signed certificate. You can follow the instructions for minikube [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/Keystore/README.md#locally-in-minikube) and icp [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/Keystore/README.md#remotely-in-icp).
 
 1. Locally in Minikube
@@ -133,7 +135,7 @@ Finally, we must create a Kubernetes Cluster. As already said before, we are goi
 
 - [Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) - Create a single node virtual cluster on your workstation. Follow the instructions [here](https://kubernetes.io/docs/tasks/tools/install-minikube/) to get Minikube installed on your workstation.
 
-We not only recommend to complete the three Minikube installation steps on the link above but also read the [Running Kubernetes Locally via Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) page for getting more familiar with Minikube. We can learn there interesting things such as reusing our Docker daemon, getting the Minikube's ip or opening the Minikube's dashboard for GUI interaction with out Kubernetes Cluster.
+We not only recommend to complete the three Minikube installation steps on the link above but also read the [Running Kubernetes Locally via Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) page for getting more familiar with Minikube. 
 
 2. Remotely in ICP
 
@@ -234,13 +236,7 @@ If it is a success, you will see the below output.
 Successfully built d884278b44f2
 Successfully tagged auth:v1.0.0
 ```
-2. Run the helm chart as below.
-
-Before running the helm chart in minikube, access [values.yaml](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-inventory/blob/microprofile/inventory/chart/inventory/values.yaml) and replace the repository with the below.
-
-`repository: auth`
-
-Then run the helm chart 
+2. Run the helm chart as below. 
 
 `helm install --name=auth chart/auth`
 
