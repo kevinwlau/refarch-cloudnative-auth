@@ -228,13 +228,13 @@ export DOCKER_API_VERSION="1.23"
 
 - Now run the docker build.
 
-`docker build -t auth:v1.0.0 .`
+`docker build -t auth-mp:v1.0.0 .`
 
 If it is a success, you will see the below output.
 
 ```
 Successfully built d884278b44f2
-Successfully tagged auth:v1.0.0
+Successfully tagged auth-mp:v1.0.0
 ```
 2. Run the helm chart as below. 
 
@@ -310,13 +310,13 @@ You can find the detailed installation instructions for IBM Cloud Private [here]
 
 1. Now run the docker build.
 
-`docker build -t auth:v1.0.0 .`
+`docker build -t auth-mp:v1.0.0 .`
 
 If it is a success, you will see the below output.
 
 ```
 Successfully built d884278b44f2
-Successfully tagged auth:v1.0.0
+Successfully tagged auth-mp:v1.0.0
 ```
 
 2. Tag the image to your private registry.
