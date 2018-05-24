@@ -49,15 +49,15 @@ spec:
             path: /
             port: 9443
             scheme: HTTPS
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           timeoutSeconds: 60
         livenessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 9443
             scheme: HTTPS
-          initialDelaySeconds: 1500
-          timeoutSeconds: 500
+          initialDelaySeconds: 60
+          timeoutSeconds: 60
         resources:
           requests:
             cpu: "{{ .Values.image.resources.requests.cpu }}"

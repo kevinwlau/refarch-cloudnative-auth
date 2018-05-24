@@ -24,15 +24,18 @@ spec:
 {{ else }}
         readinessProbe:
           httpGet:
-            path: /auth/rest/health
-            port: 9080
-          initialDelaySeconds: 20
+            path: /
+            port: 9443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          timeoutSeconds: 60
         livenessProbe:
           httpGet:
-            path: /auth/rest/health
-            port: 9080
-          initialDelaySeconds: 1500
-          timeoutSeconds: 500
+            path: /health
+            port: 9443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          timeoutSeconds: 60
 {{ end }}
         resources:
           requests:
