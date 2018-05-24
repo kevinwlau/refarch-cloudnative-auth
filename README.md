@@ -80,6 +80,10 @@ Configure a Liberty server to act as an OpenID Connect Provider by enabling the 
 
 Liberty Server can be configured with a basic user registry by defining the users and groups information for authentication.
 
+3. MicroProfile Health Check 1.0 - For MicroProfile implementations, this feature helps us to determine the status of the service as well as its availability. This helps us to know if the service is healthy. If not, we can know the reasons behind the termination or shutdown. 
+
+In our sample application, we injected this `/health` endpoint in our liveness probes.
+
 ### Building the app
 
 To build the application, we used maven build. Maven is a project management tool that is based on the Project Object Model (POM). Typically, people use Maven for project builds, dependencies, and documentation. Maven simplifies the project build. In this task, you use Maven to build the project.
