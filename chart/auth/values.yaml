@@ -4,9 +4,9 @@ replicaCount: 1
 
 image:
   #repository: registry.csplab.cloudns.cx/microprofile/auth-mp
-  #repository: ibmcase/auth-mp
-  repository: auth-mp
-  tag: v1.0.0
+  repository: ibmcase/auth-mp
+  #repository: auth-mp
+  tag: v2.0.0
   pullPolicy: IfNotPresent
   resources:
     requests:
