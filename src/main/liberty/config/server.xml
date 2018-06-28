@@ -16,19 +16,21 @@
   <basicRegistry id="basic" realm=" OpBasicRealm ">
         <user name="foo" password="bar" />
         <user name="user" password="password"/>
+        <user name="admin" password="password"/>
         <group name="Admin">
-          <member name="user" />
+          <member name="admin" />
        </group>
        <group name="User">
           <member name="foo" />
+          <member name="user" />
        </group>
   </basicRegistry>
 
   <!--keyStore id="defaultKeyStore" password="keypass" /-->
-  
+
   <ssl id="defaultSSLConfig" keyStoreRef="bcKeyStore"/>
   <keyStore id="bcKeyStore" location="/etc/keystorevol/BCKeyStoreFile.jks" type="JKS" password="password" />
-  
+
   <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="bcKeyStore" keyAliasName="bckey"/>
   <oauthProvider httpsRequired="true" id="Oauth" tokenFormat="mpjwt"  >
 
