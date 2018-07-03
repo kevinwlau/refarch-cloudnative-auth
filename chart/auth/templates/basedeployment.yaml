@@ -5,6 +5,7 @@ metadata:
   name: {{ .Release.Name }}-{{ .Values.service.name }}
   labels:
     chart: '{{ .Release.Name }}-{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}'
+    release: {{ .Release.Name }}
     implementation: "microprofile"
 spec:
   replicas: {{ .Values.base.replicaCount }}
@@ -14,6 +15,7 @@ spec:
       labels:
         app: "{{ .Release.Name }}-{{  .Chart.Name }}-selector"
         version: "base"
+        release: {{ .Release.Name }}
         implementation: "microprofile"
     spec:
       containers:

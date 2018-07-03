@@ -16,13 +16,11 @@
   <basicRegistry id="basic" realm=" OpBasicRealm ">
         <user name="foo" password="bar" />
         <user name="user" password="password"/>
-        <user name="admin" password="password"/>
         <group name="Admin">
-          <member name="admin" />
+          <member name="user" />
        </group>
        <group name="User">
           <member name="foo" />
-          <member name="user" />
        </group>
   </basicRegistry>
 
