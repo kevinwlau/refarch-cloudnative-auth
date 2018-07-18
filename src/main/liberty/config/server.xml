@@ -17,10 +17,10 @@
         <user name="foo" password="bar" />
         <user name="user" password="password"/>
         <group name="Admins">
-          <member name="foo" />
+          <member name="user" />
        </group>
        <group name="Users">
-          <member name="user" />
+          <member name="foo" />
        </group>
   </basicRegistry>
 
