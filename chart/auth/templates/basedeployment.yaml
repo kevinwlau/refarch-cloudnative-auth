@@ -44,4 +44,6 @@ spec:
         env:
           - name: PORT
             value: "{{ .Values.service.servicePort }}"
+          - name: jwksIssuer
+            value: https://{{ .Release.Name }}-{{ .Values.service.auth }}:9443/oidc/endpoint/OP
 {{ end }}
