@@ -1,7 +1,7 @@
 <server description="Sample Liberty server">
 
   <featureManager>
-      <feature>microprofile-1.2</feature>
+      <feature>microprofile-1.3</feature>
       <feature>openidConnectServer-1.0</feature>
   </featureManager>
 
@@ -13,13 +13,13 @@
 
   <webApplication name="Auth" location="${app.location}"/>
 
-  <basicRegistry id="basic" realm=" OpBasicRealm ">
+  <basicRegistry id="basic">
         <user name="foo" password="bar" />
         <user name="user" password="password"/>
-        <group name="Admin">
+        <group name="Admins">
           <member name="user" />
        </group>
-       <group name="User">
+       <group name="Users">
           <member name="foo" />
        </group>
   </basicRegistry>
@@ -28,10 +28,10 @@
 
   <ssl id="defaultSSLConfig" keyStoreRef="bcKeyStore"/>
   <keyStore id="bcKeyStore" location="/etc/keystorevol/BCKeyStoreFile.jks" type="JKS" password="password" />
+  
+  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="bcKeyStore" keyAliasName="bckey" issuerIdentifier="${env.jwksIssuer}"/>
 
-  <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="bcKeyStore" keyAliasName="bckey"/>
   <oauthProvider httpsRequired="true" id="Oauth" tokenFormat="mpjwt"  >
-
     <localStore>
     <client name="bluecomputeweb" secret="bluecomputewebs3cret"
                 displayname="bluecomputeweb"
