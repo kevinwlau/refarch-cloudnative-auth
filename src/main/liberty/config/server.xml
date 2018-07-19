@@ -25,11 +25,12 @@
   </basicRegistry>
 
   <!--keyStore id="defaultKeyStore" password="keypass" /-->
-  
+
   <ssl id="defaultSSLConfig" keyStoreRef="bcKeyStore"/>
   <keyStore id="bcKeyStore" location="/etc/keystorevol/BCKeyStoreFile.jks" type="JKS" password="password" />
   
   <openidConnectProvider id="OP" oauthProviderRef="Oauth" signatureAlgorithm="RS256" keyStoreRef="bcKeyStore" keyAliasName="bckey" issuerIdentifier="${env.jwksIssuer}"/>
+
   <oauthProvider httpsRequired="true" id="Oauth" tokenFormat="mpjwt"  >
     <localStore>
     <client name="bluecomputeweb" secret="bluecomputewebs3cret"
