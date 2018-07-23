@@ -6,7 +6,7 @@ image:
   #repository: registry.csplab.cloudns.cx/microprofile/auth-mp
   repository: ibmcase/auth-mp
   #repository: auth-mp
-  tag: v2.0.0
+  tag: v3.0.0
   pullPolicy: IfNotPresent
   resources:
     requests:
