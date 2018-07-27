@@ -47,7 +47,7 @@ spec:
       containers:
       - name: "{{ .Chart.Name }}"
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: Always
         readinessProbe:
           httpGet:
             path: /
