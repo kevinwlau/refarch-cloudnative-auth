@@ -3,8 +3,7 @@
 ## Table of Contents
 
 * [Building the app](#building-the-app)
-* [Setting up Cloudant](#setting-up-cloudant)
-* [Setting up Zipkin](#setting-up-zipkin) (Optional)
+* [Running The App](#running-the-app-and-stopping-it)
 ### Running the app and stopping it
 
 # Building the app
@@ -52,7 +51,7 @@ To build the application, we used maven build. Maven is a project management too
 [INFO] ------------------------------------------------------------------------
 ```
 
-### Running the app and stopping it
+# Running the app and stopping it
 
 1. Start your server.
 ```
@@ -79,6 +78,10 @@ Make a post request to https://localhost:9443/oidc/endpoint/OP/token with the fo
 ```
 grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=user&password=password&scope=openid
 
+```
+or with this curl command
+```
+curl -k -d "grant_type=password&client_id=bluecomputeweb&client_secret=bluecomputewebs3cret&username=foo&password=bar&scope=openid" https://localhost:9443/oidc/endpoint/OP/token
 ```
 
 3. If you are done accessing the application, you can stop your server using the following command.
