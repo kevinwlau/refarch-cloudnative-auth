@@ -21,9 +21,14 @@ To build the application, we used maven build. Maven is a project management too
 
    `git checkout microprofile`
 
-3. Create a local instance of a Keystore following the instuctions below.
-    https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/blob/microprofile/Keystore/README.md
-    Replace the location in the [server.xml](https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/blob/microprofile/src/main/liberty/config/server.xml).
+3. Create a local instance of a Keystore by running the commands below.
+    ```
+    keytool -genkeypair -dname "cn=bc.ibm.com, o=User, ou=IBM, c=US" -alias bckey -keyalg RSA -keysize 2048 -keypass password -storetype JKS -keystore ./BCKeyStoreFile.jks -storepass password -validity 3650
+    keytool -list -keystore ./BCKeyStoreFile.jks -storepass password
+    keytool -export -alias bckey -file client.cer -keystore ./BCKeyStoreFile.jks
+    keytool -import -v -trustcacerts -alias bckey -file client.cer -keystore ./truststore.jks -storepass password -noprompt
+    ```
+    Replace the location of the bcKeyStore in the [server.xml](https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/blob/microprofile/src/main/liberty/config/server.xml).
  
 4. Run this command. This command builds the project and installs it.
 

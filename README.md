@@ -168,7 +168,7 @@ To deploy it on Minikube, please follow the instructions provided [here](https:/
 
 ### Run The Auth Service locally
 To deploy the app locally and test the individual service, please follow the instructions provided
-[here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/blob/microprofile/building-locally.md)
+[here](building-locally.md)
 ## References
 
 1. [Microprofile](https://microprofile.io/)
