@@ -55,7 +55,7 @@ To build the application, we used maven build. Maven is a project management too
 
 1. Start your server.
 ```
-mvn liberty:start-server -DhttpPort=9080 -DhttpsPort=9443
+mvn liberty:start-server -DtestServerHttpPort=<httpPort> -DtestServerHttpsPort=<httpsPort>
 ```
 You will see something similar to the below messages.
 
