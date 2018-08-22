@@ -18,7 +18,7 @@ apply plugin: 'spring-boot'
 
 jar {
     baseName = 'micro-auth'
-    version =  '0.1.0'
+    version =  '0.0.1'
 }
 
 repositories {
@@ -59,17 +59,6 @@ test {
     testLogging {
         events 'started', 'passed'
         showStandardStreams = true
-    }
-}
-
-task docker {
-    doLast {
-        copy {
-            from 'build/libs/micro-auth-0.1.0.jar'
-            into 'docker'
-        }
-        file("docker/micro-auth-0.1.0.jar").renameTo(file("docker/app.jar"))
-
     }
 }
 
