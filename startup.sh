@@ -8,9 +8,6 @@ export JAVA_OPTS="${JAVA_OPTS} -Xmx${max_heap}m"
 # Set basic java options
 export JAVA_OPTS="${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom"
 
-# Parse CouchDB info and put it into JAVA_OPTS
-parse_couchdb
-
 # Parse HS256_KEY
 if [ -n "${HS256_KEY}" ]; then
 	echo "Found HS256_KEY"
