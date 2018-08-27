@@ -30,7 +30,7 @@ jobs:
           - $HOME/.gradle/wrapper/
       before_script:
       # Start CouchDB and Inventory Containers and Create a Test User
-      - bash scripts/start_auth.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
+      - bash scripts/start_customer.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
       script:
       # Gradle Build
       - ./gradlew build
@@ -47,7 +47,7 @@ jobs:
         - true
       before_script:
       # Start CouchDB and Inventory Containers and Create a Test User
-      - bash scripts/start_auth.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
+      - bash scripts/start_customer.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
       script:
       # Get Customer Container IP Address
       - CUSTOMER_IP_ADDRESS=$(docker inspect auth | jq -r '.[0].NetworkSettings.IPAddress')
