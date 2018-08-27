@@ -1,41 +1,59 @@
-***In this repo, the branches will be refactored within 14 days. The current branches will be condensed down to `master`, `spring` and `microprofile`. Existing `master` will be renamed to `spring` and the new `master` will have documentation pointing to the relevant branches.***
-
-# Secure REST API with OAuth 2.0 and Authorization Service
+# refarch-cloudnative-micro-auth: Secure REST API with OAuth 2.0 and Authorization Service
 
 *This project is part of the 'IBM Cloud Native Reference Architecture' suite, available at
-https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes*
+https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/spring*
 
-This project demonstrates how to authenticate the API user as well as enable OAuth 2.0 authorization for all OAuth protected APIs in the BlueCompute reference application. The Spring Authorization Server is used as an OAuth provider; the BlueCompute reference application delegates authentication and authorization to this component, which verifies credentials using the [Customer Microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer). The project contains the following components:
+## Table of Contents
+  * [Introduction](#introduction)
+    + [Interaction with Identity Provider (Auth Microservice)](#interaction-with-identity-provider-auth-microservice)
+    + [Interaction with Resource Server API](#interaction-with-resource-server-api)
+  * [REST API Endpoints](#rest-api-endpoints)
+  * [Deploy Auth Application to Kubernetes Cluster](#deploy-auth-application-to-kubernetes-cluster)
+  * [Validate Auth Service](#validate-auth-service)
+    + [Validate the password flow of the authorization service](#validate-the-password-flow-of-the-authorization-service)
+    + [Validate the implicit flow of the authorization service](#validate-the-implicit-flow-of-the-authorization-service)
+  * [Deploy Auth Application on Docker](#deploy-auth-application-on-docker)
+    + [Setup: Deploy Customer Docker Container](#setup-deploy-customer-docker-container)
+    + [Deploy the Auth Docker Container](#deploy-the-auth-docker-container)
+  * [Run Auth Service application on localhost](#run-auth-service-application-on-localhost)
+  * [Optional: Setup CI/CD Pipeline](#optional-setup-cicd-pipeline)
+  * [Conclusion](#conclusion)
+  * [Contributing](#contributing)
+    + [GOTCHAs](#gotchas)
+    + [Contributing a New Chart Package to Microservices Reference Architecture Helm Repository](#contributing-a-new-chart-package-to-microservices-reference-architecture-helm-repository)
 
- - Spring-based Authorization Server application that handles user authentication and authorization
- - Uses Spring Feign Client to call Customer Microservice to validate login credentials
- - Return a signed [JWT](https://jwt.io) Bearer token back to caller for identity propagation and authorization
+## Introduction
+This project demonstrates how to authenticate the API user as well as enable OAuth 2.0 authorization for all OAuth protected APIs in the BlueCompute reference application. The Spring Authorization Server is used as an OAuth provider; the BlueCompute reference application delegates authentication and authorization to this component, which verifies credentials using the [Auth Microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-auth/tree/spring).
 
-## Use Case
+Here is an overview of the project's features:
+- Leverage [`Spring Boot`](https://projects.spring.io/spring-boot/) framework to build a Microservices application.
+- Spring-based [`Authorization Server`](https://spring.io/projects/spring-security-oauth) application that handles user authentication and authorization.
+- Uses [`Spring Feign Client`](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-feign.html) to call Auth Microservice to validate login credentials.
+- Return a signed [JWT](https://jwt.io) Bearer token back to caller for identity propagation and authorization
+- Uses [`Docker`](https://docs.docker.com/) to package application binary and its dependencies.
+- Uses [`Helm`](https://helm.sh/) to package application and Auth deployment configuration and deploy to a [`Kubernetes`](https://kubernetes.io/) cluster. 
 
-### Interaction with Identity Provider (Customer Microservice)
+### Interaction with Identity Provider (Auth Microservice)
 
-![Authorization Microservice interaction with Customer Microservice via Service Registry](auth_customer_micro.png)
+![Application Architecture](static/diagrams/auth.png?raw=true)
 
-The Authorization microservice leverages the [Customer Microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer) as an identity provider.  
-- When username/password is passed in, the Authorization microservice calls the Customer microservice using Spring Feign Client.  
-- Authorization microservice checks the password against the password returned by the Customer API.  If it matches, `HTTP 200` is returned to indicate that the username/password are valid, `HTTP 401` is returned to indicate that the username/password is invalid.
+* The Authorization microservice leverages the [Auth Microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/tree/spring) as an identity provider.  
+* When username/password is passed in, the Authorization microservice calls the Auth microservice using Spring Feign Client.  
+* Authorization microservice checks the password against the password returned by the Auth API.  If it matches, `HTTP 200` is returned to indicate that the username/password are valid, `HTTP 401` is returned to indicate that the username/password is invalid.
 
   *Note that this is only meant as a demonstration on how to implement a custom identity provider and shouldn't be used in production, as the passwords are returned in compared in plaintext instead of using secure one-way hashes.*
 
 ### Interaction with Resource Server API 
+![Application Architecture](static/diagrams/auth_orders.png?raw=true)
 
-![Authorization Microservice interaction with API Gateway](spring_auth.png)
-
-- When a client wishes to acquire an OAuth token to call a protected API, it calls the OAuth Provider (Authorization microservice) token endpoint with the username/password of the user and requests a token with scope `blue`.
-- Authorization microservice will call the Customer microservice to get the Customer object assicated with the username/password and perform the validation.
-- If the username/password are valid, `HTTP 200` is returned, along with a JWT (signed using a HS256 shared secret) in the JSON response under `access_token` which contains the customer ID of the user passed in in the `user_name` claim.
-- The client uses the JWT in the `Authorization` header as a bearer token to call other Resource Servers that have OAuth protected API (such as the [Orders microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-orders)).
-- The service implementing the REST API verifies that the JWT is valid and signed using the shared secret, then extracts the `user_name` claim from the JWT to identify the caller.
-- The JWT is encoded with scope `blue` and the the expiry time in `exp`; once the token is generated there is no additional interaction between the Resource Server and the OAuth server.
+* When a client wishes to acquire an OAuth token to call a protected API, it calls the OAuth Provider (Authorization microservice) token endpoint with the username/password of the user and requests a token with scope `blue`.
+* Authorization microservice will call the Auth microservice to get the Auth object assicated with the username/password and perform the validation.
+* If the username/password are valid, `HTTP 200` is returned, along with a JWT (signed using a HS256 shared secret) in the JSON response under `access_token` which contains the auth ID of the user passed in in the `user_name` claim.
+* The client uses the JWT in the `Authorization` header as a bearer token to call other Resource Servers that have OAuth protected API (such as the [Orders microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-orders/tree/spring)).
+* The service implementing the REST API verifies that the JWT is valid and signed using the shared secret, then extracts the `user_name` claim from the JWT to identify the caller.
+* The JWT is encoded with scope `blue` and the the expiry time in `exp`; once the token is generated there is no additional interaction between the Resource Server and the OAuth server.
 
 ## REST API Endpoints
-
 Following the [OAuth 2.0 specification](https://tools.ietf.org/html/rfc6749), the Authorization server exposes both an authorization URI and a token URI.
 
 - GET `/oauth/authorize`
@@ -43,237 +61,170 @@ Following the [OAuth 2.0 specification](https://tools.ietf.org/html/rfc6749), th
 
 The BlueCompute reference application supports the following clients and grant types:
 
-- The [BlueCompute Web Application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web) using client ID `bluecomputeweb` and client secret `bluecomputewebs3cret` supports OAuth 2.0 Password grant type.
+- The [BlueCompute Web Application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web/tree/spring) using client ID `bluecomputeweb` and client secret `bluecomputewebs3cret` supports OAuth 2.0 Password grant type.
 - The [BlueCompute Mobile Application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-mobile) using client ID `bluecomputemobile` and client secret `bluecomputemobiles3cret` supports OAuth 2.0 Implicit grant type.
 
 The BlueCompute application has one scope, `blue`.
 
-## Pre-requisites
+## Deploy Auth Application to Kubernetes Cluster
+In this section, we are going to deploy the Auth Application, along with a Customer service, to a Kubernetes cluster using Helm. To do so, follow the instructions below:
+```bash
+# Go to Chart Directory
+$ cd chart/auth
 
-### Install Docker
+# Download Customer Dependency Chart
+$ helm dependency update
 
-Install [Docker](https://www.docker.com)
-
-### Install Bluemix CLI and IBM Container Service plugins
-
-Install the [bx CLI](https://clis.ng.bluemix.net/ui/home.html), the Bluemix container-registry Plugin and the Bluemix container-service plugin.  The plugins can be installed directly [here](http://plugins.ng.bluemix.net/ui/repository.html), or using the following commands:
-
-```
-# bx plugin install container-service -r Bluemix
-# bx plugin install conatiner-registry -r Bluemix
+# Deploy Auth and Customer to Kubernetes cluster
+$ helm upgrade --install auth --set service.type=NodePort .
 ```
 
-### Install kubectl
+The last command will give you instructions on how to access/test the Auth application. Please note that before the Auth application starts, the Customer deployment must be fully up and running, which normally takes a couple of minutes. With Kubernetes [Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), the Auth Deployment polls for Customer readiness status so that Auth can start once Customer is ready, or error out if Customer fails to start.
 
-Install the [kubectl CLI](https://kubernetes.io/docs/tasks/kubectl/install/).
-
-### Create HS256 shared secret
-
-The *same* HS256 shared secret used to sign the generated JWT is needed by all resource servers to validate the access token provided by the caller.
-
-A 2048-bit secret can be generated using the following command:
-
-```
-# cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 256 | head -n 1 | xargs echo -n
+To check and wait for the deployment status, you can run the following command:
+```bash
+$ kubectl get deployments -w
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+auth-auth             1         1         1            1           10h
 ```
 
-## Build and execute the code locally
+The `-w` flag is so that the command above not only retrieves the deployment but also listens for changes. If you a 1 under the `CURRENT` column, that means that the auth app deployment is ready.
 
-1. Build the application.
+In the following section you validate that the Auth chart was deployed successfully. Make sure to use the `${NODE_IP}` and `${PORT}` that you get from the chart install output instead of `localhost` and `8080`.
 
-   ```
-   # ./gradlew build
-   ```
+## Validate Auth Service
 
-2. Deploy the Customer microservice dependency.
+### Validate the password flow of the authorization service
+The [Web Application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web/tree/spring) uses the password flow to obtain a password token.  It uses Client ID `bluecomputeweb` and Client Secret `bluecomputewebs3cret`.  For a user `user` with password `passw0rd`, run the following to obtain an access token with scope `blue`:
+```bash
+$ curl -i \
+   -X POST \
+   -u bluecomputeweb:bluecomputewebs3cret \
+   http://localhost:8080/oauth/token?grant_type=password\&username=user\&password=passw0rd\&scope=blue
 
-   The Authorization microservice has a dependency on the [Customer microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer).  Build and deploy a local Customer microservice instance.  Create a customer with username `foo` and password `bar`.
+HTTP/1.1 200 OK
+Date: Thu, 23 Aug 2018 20:22:50 GMT
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+X-Application-Context: auth-microservice:8080
+Cache-Control: no-store
+Pragma: no-cache
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Server: Jetty(9.2.16.v20160414)
 
-3. Run the application
-
-   Assuming Customer microservice is listening on local port 8080, execute the following in a different terminal to run the Authorization microservice on port 8000.  Ensure that the `HS256 Shared Secret` is replaced in the command.
-
-   ```
-   java \
-    -Djwt.sharedSecret=<HS256 Shared Secret> \
-    -DcustomerService.url=http://localhost:8080 \
-    -Dserver.port=8000 \
-    -jar build/libs/micro-auth-0.1.0.jar
-   ```
-
-4. Validate the password flow of the authorization service
-
-   The [Web Application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web) uses the password flow to obtain a password token.  It uses Client ID `bluecomputeweb` and Client Secret `bluecomputewebs3cret`.  For a user `foo` with password `bar`, run the following to obtain an access token with scope `blue`:
-
-   ```
-   # curl -i \
-       -X POST \
-       -u bluecomputeweb:bluecomputewebs3cret \
-       http://localhost:8000/oauth/token?grant_type=password\&username=foo\&password=bar\&scope=blue
-   ```
-   
-   The response JSON returned will contain an `access_token`.  Use the debugger at [jwt.io](https://jwt.io) to decode the token and validate the signature by pasting the `access_token` into the `Encoded` text field, and pasting the HS256 shared secret in the `Verify Signature` text box.  You should observe the `client_id` and `scope` claims in the payload correspond to the client ID and scope passed in on the request query, the `user_name` corresponds to the customer ID of `foo` returned from the Customer Service, and the signature is verified.
-   
-5. Validate the implicit flow of the authorization service
-
-   The [Mobile application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-mobile) uses the implicit flow to create a token by opening a browser and retrieving the OAuth token once the authorization flow is complete.  
-   
-   To validate that this works, open a browser window and navigate to the following URL.  This requests the token with scope `blue` using the client id `bluecomputemobile` with the client secret `bluecomputemobiles3cret`.  When the full authorization flow is completed, the authorization server will redirect the browser to `http://localhost:8000`.
-   
-   ```
-   http://localhost:8000/oauth/authorize?client_id=bluecomputemobile&client_secret=bluecomputemobiles3cret&response_type=token&redirect_uri=http://localhost:8000
-   ```
-   
-   The login form is shown with the username and password.  Enter the username and password `foo` and `bar` respectively, and the browser is taken to the authorization page.  When authorization is granted, the browser is taken to the URL with the access token as a query parameter.
-   
-   As with the password flow, you can use [jwt.io](https://jwt.io) to verify the token's scope and claims.
-
-## Deploy the Service to Bluemix
-
-### Bulid the Docker container image
-   
-```
-# ./gradlew docker
-# cd docker
-# docker build -t auth-microservice .
+{"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MzUwOTg5NzEsInVzZXJfbmFtZSI6ImM1MmU4NDJmYjllNjQ3Y2Y4ZGFhNDMyMDZmOTAyZTY2IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6ImNjNGQ1MWYzLTk1MDItNGI0Yy04ZDY1LThkY2VmNjU0MmM5ZCIsImNsaWVudF9pZCI6ImJsdWVjb21wdXRld2ViIiwic2NvcGUiOlsiYmx1ZSJdfQ.TWOqO-rFP5V7QXEiLqKByxXMQzQVEEiSDnLwSHOLE4c","token_type":"bearer","refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJjNTJlODQyZmI5ZTY0N2NmOGRhYTQzMjA2ZjkwMmU2NiIsInNjb3BlIjpbImJsdWUiXSwiYXRpIjoiY2M0ZDUxZjMtOTUwMi00YjRjLThkNjUtOGRjZWY2NTQyYzlkIiwiZXhwIjoxNTM3NjQ3NzcxLCJhdXRob3JpdGllcyI6WyJST0xFX1VTRVIiXSwianRpIjoiZjNjZDZhMTMtOTBmZi00YzUyLTg2ZjQtMzBhMTE2MDhlMDEyIiwiY2xpZW50X2lkIjoiYmx1ZWNvbXB1dGV3ZWIifQ.HeD8hZXJeoSuXdET168c4-ycZjCRTcs80grgqBkg6Lg","expires_in":43199,"scope":"blue","jti":"cc4d51f3-9502-4b4c-8d65-8dcef6542c9d"}
 ```
 
-### Push the Docker container image to the Bluemix private registry
+The response JSON returned will contain an `access_token`.  Use the debugger at [jwt.io](https://jwt.io) to decode the token and validate the signature by pasting the `access_token` into the `Encoded` text field, and pasting the HS256 shared secret in the `Verify Signature` text box.  You should observe the `client_id` and `scope` claims in the payload correspond to the client ID and scope passed in on the request query, the `user_name` corresponds to the auth ID of `user` returned from the Auth Service, and the signature is verified.
 
-1. Log into the Bluemix CLI
+### Validate the implicit flow of the authorization service
+The [Mobile application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-mobile) uses the implicit flow to create a token by opening a browser and retrieving the OAuth token once the authorization flow is complete.  
 
-   ```
-   # bx login
-   ```
-   
-   Be sure to set the correct target space.
-   
-2. Initialize the Bluemix Container Service plugin
-   
-   ```
-   # bx cs init
-   ```
-   
-   Initialize the Bluemix Container Registry plugin:
-   
-   ```
-   # bx cr login
-   ```
-   
-   Get the registry namespace:
-   
-   ```
-   # bx cr namespaces
-   ```
-   
-   If there are no namespaces available, use the following command to create one:
-   
-   ```
-   # bx cr namespace-add <namespace>
-   ```
-   
-3. Tag and push the docker image to the Bluemix private registry:
+To validate that this works, open a browser window and navigate to the following URL.  This requests the token with scope `blue` using the client id `bluecomputemobile` with the client secret `bluecomputemobiles3cret`. When the full authorization flow is completed, the authorization server will redirect the browser to `https://ibm.com`.
 
-   ```
-   # docker tag auth-microservice registry.ng.bluemix.net/<namespace>/auth-microservice
-   # docker push registry.ng.bluemix.net/<namespace>/auth-microservice
-   ```
+* http://localhost:8080/oauth/authorize?client_id=bluecomputemobile&client_secret=bluecomputemobiles3cret&response_type=token&redirect_uri=https://ibm.com
 
-### Create a Kubernetes Cluster (if applicable)
-   
-If a Kubernetes cluster has not previously been created, create a free Kubernetes cluster using the following:
-   
+![Application Architecture](static/images/1_enter_credentials.png?raw=true)
+
+The login form is shown with the username and password.  Enter the username and password `user` and `passw0rd` respectively, and the browser is taken to the authorization page. When authorization is granted, the browser is taken to the URL with the access token as a query parameter.
+
+![Application Architecture](static/images/2_oauth_approval.png?raw=true)
+
+As with the password flow, you can use [jwt.io](https://jwt.io) to verify the token's scope and claims.
+
+## Deploy Auth Application on Docker
+You can also run the Auth Application locally on Docker. Before we show you how to do so, you will need to have a running Customer deployment running somewhere.
+
+### Setup: Deploy Customer Docker Container
+The easiest way to to setup the customer service is with a docker container. To do so, follow this guide from the customer service GitHub page:
+https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer/tree/spring#deploy-customer-application-on-docker
+
+Then you must create a customer record by following the setup section and step 1 in the following guide:
+https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer/tree/spring#validate-the-customer-microservice-api
+
+Lastly, you must obtain the customer container's IP address:
+```bash
+# Get the Customer Container's IP Address
+$ docker inspect customer | grep "IPAddress"
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.2",
+                    "IPAddress": "172.17.0.2",
 ```
-# bx cs cluster-create --name <cluster_name>
-```
-   
-You can monitor the cluster creation using `bx cs clusters` and `bx cs workers <cluster_name>`. 
-   
-### Set up kubectl
+Make sure to select the IP Address in the `IPAddress` field. You will use this IP address when deploying the Auth container.
 
-Once the cluster has been created, download the configuration:
-   
-```
-# bx cs cluster-config <cluster_name>
-```
-   
-Cut and paste the `export KUBECONFIG` command to set up the kubectl CLI to talk to the Kubernetes instance.
-   
-### Create a secret for the HS256 shared key
+### Deploy the Auth Docker Container
+To deploy the Auth container, run the following commands:
+```bash
+# Build the Docker Image
+$ docker build -t auth .
 
-Create a secret for the HS256 shared key in the Kubernetes cluster.
-   
-```
-# kubectl create secret generic hs256-key --from-literal=key=<HS256-key>
+# Start the Auth Container
+$ docker run --name auth \
+    -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8080 \
+    -e HS256_KEY=${HS256_KEY} \
+    -p 8080:8080 \
+    -d auth
 ```
 
-### Deploy the Customer Microservice to the same Kubernetes Cluster
+Where:
+* `${CUSTOMER_IP_ADDRESS}` is the IP address of the Customer container, which is only accessible from the Docker container network.
+* `${HS256_KEY}` is the 2048-bit secret, which must match that of the customer service.
+  + [Here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer/tree/spring#b-create-a-temporary-hs256-shared-secret) the key that's used in the customer service, along with instructions on how to create your own. 
 
-Follow the deployment instructions for the [Customer microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer) and deploy it to the same Kubernetes cluster.  The authorization service by default calls the Customer microservice using the REST-API exposed internally to the Kubernetes cluster as a local service named `customer-service` listening on port `8080`.
-   
-### Update the deployment yaml for the Authorization microservice:
-   
-Open and editor and update the yaml:
-   
-```
-# vi kubernetes/auth.yaml
-```
-   
-1. Update the the path under `spec.template.spec.containers[0].image` to correspond to the image pushed to the registry (in step 3).
-2. Update the secret name under `spec.template.spec.volumes.name.secret[0].secretName` to correspond to the name of the Kubernetes secret for the HS256 shared secret (e.g. `hs256-key` by default).
-   
-Here is an example of what the updated deployment may look like:
-   
-```
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: auth-microservice
-spec:
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        app: bluecompute
-        tier: frontend
-        micro: auth
-    spec:
-      containers:
-      - name: auth-service
-        image: registry.ng.bluemix.net/myimages/auth-microservice
-        imagePullPolicy: Always
-        volumeMounts:
-        - mountPath: /opt/hs256-key
-          name: hs256-key
-        ports:
-        - containerPort: 8080
-      volumes:
-      - name: hs256-key
-        secret:
-          defaultMode: 420
-          secretName: hs256-key
+You have successfully deployed the Auth container! To validate, follow the instructions in the [Validate Auth Service](#validate-auth-service) section.
 
-```
-      
-### Deploy to Bluemix
+## Run Auth Service application on localhost
+In this section you will run the Spring Boot application on your local workstation. Before we show you how to do so, you will need to deploy a Customer Docker container as shown in the [Setup: Deploy Customer Docker Container](#setup-deploy-customer-docker-container) section.
 
-Deploy the pods.
-   
-```
-# kubectl create -f kubernetes/auth.yaml
+Once Customer is ready, we can run the Spring Boot Auth application locally as follows:
+
+1. Build the application:
+```bash
+$ ./gradlew build
 ```
 
-Also deploy the service
-   
-```
-# kubectl create -f kubernetes/auth-service.yaml
-```
-
-Since the Authorization microservice is exposed directly to the internet, create an Ingress resource to expose the `/oauth/token` and `/oauth/authorize` endpoints:
-
-```
-# kubectl create -f kubernetes/auth-ingress.yaml
+2. Run the application on localhost:
+```bash
+$ java \
+  -Djwt.sharedSecret=${HS256_KEY} \
+  -DauthService.url=http://localhost:8080 \
+  -Dserver.port=8080 \
+  -jar build/libs/micro-auth-0.0.1.jar
 ```
 
-The authorization service token endpoint is now available for clients at `http://<cluster_name>.<region>.containers.mybluemix.net/oauth/authorize` and `http://<cluster_name>.<region>.containers.mybluemix.net/oauth/token`.
+You have successfully deployed the Auth service locally! To validate, follow the instructions in the [Validate Auth Service](#validate-auth-service) section.
+
+## Optional: Setup CI/CD Pipeline
+If you would like to setup an automated Jenkins CI/CD Pipeline for this repository, we provided a sample [Jenkinsfile](Jenkinsfile), which uses the [Jenkins Pipeline](https://jenkins.io/doc/book/pipeline/) syntax of the [Jenkins Kubernetes Plugin](https://github.com/jenkinsci/kubernetes-plugin) to automatically create and run Jenkis Pipelines from your Kubernetes environment. 
+
+To learn how to use this sample pipeline, follow the guide below and enter the corresponding values for your environment and for this repository:
+* https://github.com/ibm-cloud-architecture/refarch-cloudnative-devops-kubernetes
+
+## Conclusion
+You have successfully deployed and tested the Auth Microservice both on a Kubernetes Cluster and in local Docker Containers.
+
+To see the Auth app working in a more complex microservices use case, checkout our Microservice Reference Architecture Application [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/spring).
+
+## Contributing
+If you would like to contribute to this repository, please fork it, submit a PR, and assign as reviewers any of the GitHub users listed here:
+* https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-auth/graphs/contributors
+
+### GOTCHAs
+1. We use [Travis CI](https://travis-ci.org/) for our CI/CD needs, so when you open a Pull Request you will trigger a build in Travis CI, which needs to pass before we consider merging the PR. We use Travis CI to test the following:
+    * Deploy the Customer service.
+    * Building and running the Auth app against the Customer service and run API tests.
+    * Build and Deploy a Docker Container, using the same Customer service.
+    * Run API tests against the Docker Container.
+    * Deploy a minikube cluster to test Helm charts.
+    * Download Helm Chart dependencies and package the Helm chart.
+    * Deploy the Helm Chart into Minikube.
+    * Run API tests against the Helm Chart.
+
+### Contributing a New Chart Package to Microservices Reference Architecture Helm Repository
+To contribute a new chart version to the [Microservices Reference Architecture](https://github.com/ibm-cloud-architecture/refarch-cloudnative-devops-kubernetes) helm repository, follow its guide here:
+* COMING SOON
