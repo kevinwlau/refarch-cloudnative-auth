@@ -24,7 +24,6 @@ function create_jwt() {
 }
 
 function create_user() {
-	docker ps
 	CURL=$(curl --write-out %{http_code} --silent --output /dev/null --max-time 5 -X POST "http://localhost:8081/micro/customer" -H "Content-type: application/json" -H "Authorization: Bearer ${jwt}" -d "{\"username\": \"${TEST_USER}\", \"password\": \"${TEST_PASSWORD}\", \"firstName\": \"user\", \"lastName\": \"name\", \"email\": \"user@name.com\"}");
 
 	# Check for 201 Status Code

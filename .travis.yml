@@ -50,7 +50,7 @@ jobs:
       - bash scripts/start_customer.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
       script:
       # Get Customer Container IP Address
-      - CUSTOMER_IP_ADDRESS=$(docker inspect auth | jq -r '.[0].NetworkSettings.IPAddress')
+      - CUSTOMER_IP_ADDRESS=$(docker inspect customer | jq -r '.[0].NetworkSettings.IPAddress')
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
       # Start Auth Container and Connect to Customer Service
