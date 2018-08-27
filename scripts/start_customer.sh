@@ -2,7 +2,7 @@
 
 HS256_KEY=$1
 COUCHDB_USER=$2
-COUCHDB_PASSWORD=3
+COUCHDB_PASSWORD=$3
 TEST_USER=$4
 TEST_PASSWORD=$5
 
@@ -24,6 +24,7 @@ function create_jwt() {
 }
 
 function create_user() {
+	docker ps
 	CURL=$(curl --write-out %{http_code} --silent --output /dev/null --max-time 5 -X POST "http://localhost:8081/micro/customer" -H "Content-type: application/json" -H "Authorization: Bearer ${jwt}" -d "{\"username\": \"${TEST_USER}\", \"password\": \"${TEST_PASSWORD}\", \"firstName\": \"user\", \"lastName\": \"name\", \"email\": \"user@name.com\"}");
 
 	# Check for 201 Status Code
@@ -37,15 +38,25 @@ function create_user() {
 
 
 # Start couchdb container
+echo "Starting CouchDB container"
 docker run --name couchdb -p 5984:5984 -e COUCHDB_USER=${COUCHDB_USER} -e COUCHDB_PASSWORD=${COUCHDB_PASSWORD} -d couchdb:2.1.2
 # Wait for CouchDB to Start
+echo "Waiting 20 seconds for CouchDB to start"
 sleep 20
 # Test CouchDB
+echo "Testing CouchDB container"
 curl http://127.0.0.1:5984
+# Getting CouchDB Container IP Address
+echo "Getting CouchDB container IP Address"
+COUCHDB_IP=$(docker inspect couchdb | jq -r '.[0].NetworkSettings.IPAddress')
 
 # Start Customer Container and Connect to local MySQL Service
-docker run --net=host --name customer -d -p 8081:8080 -e HS256_KEY=${HS256_KEY} -e COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984" ibmcase/bluecompute-customer:0.5.0
+echo "Starting Customer container"
+COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
+echo "COUCHDB_URI=http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
+docker run --name customer -d -p 8081:8080 -e HS256_KEY=${HS256_KEY} -e COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984" ibmcase/bluecompute-customer:0.5.0
 # Wait for the Customer container to start accepting connections
+echo "Waiting 25 seconds for Customer to start"
 sleep 25
 # Check that the Customer container is running
 docker ps
