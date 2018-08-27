@@ -1,37 +1,59 @@
-{{/* vim: set filetype=mustache: */}}
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "authServiceName" -}}
-  {{- .Release.Name }}-{{ .Values.service.name -}}
+{{- define "auth.fullname" -}}
+  {{- .Release.Name }}-{{ .Chart.Name -}}
 {{- end -}}
 
-{{- define "name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
+{{/* Auth Labels Template */}}
+{{- define "auth.labels" }}
+app: bluecompute
+micro: auth
+tier: backend
+heritage: {{ .Release.Service | quote }}
+release: {{ .Release.Name | quote }}
+chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+{{- end }}
 
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
-{{- define "fullname" -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
+{{/* Customer Init Container Template */}}
+{{- define "auth.customer.initcontainer" }}
+- name: test-customer
+  image: {{ .Values.bash.image.repository }}:{{ .Values.bash.image.tag }}
+  imagePullPolicy: {{ .Values.bash.image.pullPolicy }}
+  command:
+  - "/bin/bash"
+  - "-c"
+  - "until curl --max-time 1 {{ include "auth.customerUrl" . }}; do echo waiting for customer-service; sleep 1; done"
+{{- end }}
 
-{{- define "hs256SecretName" -}}
-  {{- if .Values.global.hs256key.secretName -}}
-    {{- .Release.Name }}-{{ .Values.global.hs256key.secretName -}}
-  {{- else -}}
-    {{- .Release.Name }}-{{ .Chart.Name }}-{{ .Values.hs256key.secretName -}}
-  {{- end }}
-{{- end -}}
+{{/* Auth Customer URL Environment Variables */}}
+{{- define "auth.customer.environmentvariables" }}
+- name: CUSTOMERSERVICE_URL
+  value: {{ template "auth.customerUrl" . }}
+{{- end }}
 
-{{- define "customerUrl" -}}
+{{- define "auth.customerUrl" -}}
   {{- if .Values.customer.service.url -}}
     {{ .Values.service.customer.url }}
   {{- else -}}
     {{/* assume one is installed with release */}}
     {{- printf "http://%s-customer:8080" .Release.Name -}}
+  {{- end }}
+{{- end -}}
+
+{{/* Auth HS256KEY Environment Variables */}}
+{{- define "auth.hs256key.environmentvariables" }}
+- name: HS256_KEY
+  valueFrom:
+    secretKeyRef:
+        name: {{ template "auth.hs256key.secretName" . }}
+        key:  key
+{{- end }}
+
+{{/* Auth HS256KEY Secret Name */}}
+{{- define "auth.hs256key.secretName" -}}
+  {{- if .Values.global.hs256key.secretName -}}
+    {{ .Values.global.hs256key.secretName -}}
+  {{- else if .Values.hs256key.secretName -}}
+    {{ .Values.hs256key.secretName -}}
+  {{- else -}}
+    {{- .Release.Name }}-{{ .Chart.Name }}-hs256key
   {{- end }}
 {{- end -}}

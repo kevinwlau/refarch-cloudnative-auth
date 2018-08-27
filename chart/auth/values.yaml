@@ -5,8 +5,8 @@ replicaCount: 1
 
 image:
   repository: ibmcase/bluecompute-auth
-  tag: latest
   pullPolicy: Always
+  tag: 0.5.0
 
 service:
   name: auth
@@ -25,27 +25,28 @@ tls:
   crt: ENTER_BASE64_ENCODED_CERTIFICATE
   key: ENTER_BASE64_ENCODED_KEY
 
-dataloader:
-  image:
-    repository: ibmcase/bluecompute-dataloader
-    tag: latest
-
-resources:
-  limits:
-    memory: 128Mi
-  requests:
-    memory: 64Mi
-
 customer:
+  enabled: true
   service:
     url:
 
 hs256key:
-  skipDelete: true
-  secretName: hs256-key
-  secret:
+  # If there is an existing secret with the key, provide it here
+  secretName:
+  secret: E6526VJkKYhyTFRFMC0pTECpHcZ7TGcq8pKsVVgz9KtESVpheEO284qKzfzg8HpWNBPeHOxNGlyudUHi6i8tFQJXC8PiI48RUpMh23vPDLGD35pCM0417gf58z5xlmRNii56fwRCmIhhV7hDsm3KO2jRv4EBVz7HrYbzFeqI45CaStkMYNipzSm2duuer7zRdMjEKIdqsby0JfpQpykHmC5L6hxkX0BT7XWqztTr6xHCwqst26O0g8r7bXSYjp4a
 
 global:
   hs256key:
-    secretName:
-    secret:
+    secretName: 
+
+bash:
+  image:
+    repository: ibmcase/bluecompute-bash-curl-ssl
+    tag: latest
+    pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    memory: 384Mi
+  requests:
+    memory: 64Mi

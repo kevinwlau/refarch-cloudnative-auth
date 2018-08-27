@@ -27,4 +27,3 @@ jwt:
      
 customerService:
   url: http://customer-service:8080
-  
