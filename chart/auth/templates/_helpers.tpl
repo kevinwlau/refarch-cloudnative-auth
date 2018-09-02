@@ -20,18 +20,18 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
   command:
   - "/bin/bash"
   - "-c"
-  - "until curl --max-time 1 {{ include "auth.customerUrl" . }}; do echo waiting for customer-service; sleep 1; done"
+  - "until curl --max-time 1 {{ include "auth.customer.url" . }}; do echo waiting for customer-service; sleep 1; done"
 {{- end }}
 
 {{/* Auth Customer URL Environment Variables */}}
 {{- define "auth.customer.environmentvariables" }}
 - name: CUSTOMERSERVICE_URL
-  value: {{ template "auth.customerUrl" . }}
+  value: {{ template "auth.customer.url" . }}
 {{- end }}
 
-{{- define "auth.customerUrl" -}}
-  {{- if .Values.customer.service.url -}}
-    {{ .Values.service.customer.url }}
+{{- define "auth.customer.url" -}}
+  {{- if .Values.customer.url -}}
+    {{ .Values.customer.url }}
   {{- else -}}
     {{/* assume one is installed with release */}}
     {{- printf "http://%s-customer:8080" .Release.Name -}}

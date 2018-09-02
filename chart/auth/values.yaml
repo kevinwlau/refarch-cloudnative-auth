@@ -27,8 +27,7 @@ tls:
 
 customer:
   enabled: true
-  service:
-    url:
+  url:
 
 hs256key:
   # If there is an existing secret with the key, provide it here
