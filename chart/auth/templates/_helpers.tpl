@@ -43,8 +43,8 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 - name: HS256_KEY
   valueFrom:
     secretKeyRef:
-        name: {{ template "auth.hs256key.secretName" . }}
-        key:  key
+      name: {{ template "auth.hs256key.secretName" . }}
+      key:  key
 {{- end }}
 
 {{/* Auth HS256KEY Secret Name */}}

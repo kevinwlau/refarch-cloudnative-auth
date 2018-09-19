@@ -25,8 +25,7 @@ tls:
   key: ENTER_BASE64_ENCODED_KEY
 
 customer:
-  enabled: true
-  url:
+  url: http://bluecompute-customer:8080
 
 hs256key:
   # If there is an existing secret with the key, provide it here
