@@ -72,11 +72,14 @@ In this section, we are going to deploy the Auth Application, along with a Custo
 # Go to Chart Directory
 $ cd chart/auth
 
-# Download Customer Dependency Chart
-$ helm dependency update
+# Add helm repos for Customer Chart
+$ helm repo add ibmcase-charts https://raw.githubusercontent.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/spring/docs/charts
+
+# Install Customer Chart
+$ helm upgrade --install customer ibmcase-charts/customer
 
 # Deploy Auth and Customer to Kubernetes cluster
-$ helm upgrade --install auth --set service.type=NodePort .
+$ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8080 .
 ```
 
 The last command will give you instructions on how to access/test the Auth application. Please note that before the Auth application starts, the Customer deployment must be fully up and running, which normally takes a couple of minutes. With Kubernetes [Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), the Auth Deployment polls for Customer readiness status so that Auth can start once Customer is ready, or error out if Customer fails to start.
