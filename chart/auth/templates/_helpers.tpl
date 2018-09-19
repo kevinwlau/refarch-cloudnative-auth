@@ -1,5 +1,9 @@
 {{- define "auth.fullname" -}}
-  {{- .Release.Name }}-{{ .Chart.Name -}}
+  {{- if .Values.fullnameOverride -}}
+    {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- printf "%s-%s" .Release.Name .Chart.Name -}}
+  {{- end -}}
 {{- end -}}
 
 {{/* Auth Labels Template */}}
@@ -43,8 +47,8 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 - name: HS256_KEY
   valueFrom:
     secretKeyRef:
-        name: {{ template "auth.hs256key.secretName" . }}
-        key:  key
+      name: {{ template "auth.hs256key.secretName" . }}
+      key:  key
 {{- end }}
 
 {{/* Auth HS256KEY Secret Name */}}
