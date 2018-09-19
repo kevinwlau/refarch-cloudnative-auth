@@ -69,16 +69,28 @@ The BlueCompute application has one scope, `blue`.
 ## Deploy Auth Application to Kubernetes Cluster
 In this section, we are going to deploy the Auth Application, along with a Customer service, to a Kubernetes cluster using Helm. To do so, follow the instructions below:
 ```bash
-# Go to Chart Directory
-$ cd chart/auth
-
-# Add helm repos for Customer Chart
+# Add helm repos for Customer and CouchDB Charts
 $ helm repo add ibmcase-charts https://raw.githubusercontent.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/spring/docs/charts
+$ helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+
+# Install CouchDB Chart
+$ helm upgrade --install couchdb \
+  --version 0.1.7 \
+  --set fullnameOverride=customer-couchdb \
+  --set createAdminSecret=true \
+  --set adminUsername=user \
+  --set adminPassword=passw0rd \
+  --set clusterSize=1 \
+  --set persistentVolume.enabled=false \
+  incubator/couchdb
 
 # Install Customer Chart
 $ helm upgrade --install customer ibmcase-charts/customer
 
-# Deploy Auth and Customer to Kubernetes cluster
+# Go to Chart Directory
+$ cd chart/auth
+
+# Deploy Auth to Kubernetes cluster
 $ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8080 .
 ```
 
