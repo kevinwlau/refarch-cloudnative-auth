@@ -35,18 +35,18 @@ jobs:
       # Gradle Build
       - ./gradlew build
       # Start Application
-      - java -Djwt.sharedSecret=${HS256_KEY} -DcustomerService.url=http://localhost:8081 -Dserver.port=8080 -jar build/libs/micro-auth-0.0.1.jar &
+      - java -Djwt.sharedSecret=${HS256_KEY} -DcustomerService.url=http://localhost:8082 -Dserver.port=8083 -jar build/libs/micro-auth-0.0.1.jar &
       # Wait for the Inventory container to start accepting connections
       - sleep 25
       # Run Auth API Test
-      - bash scripts/api_tests.sh 127.0.0.1 8080 $TEST_USER $TEST_PASSWORD
+      - bash scripts/api_tests.sh 127.0.0.1 8083 $TEST_USER $TEST_PASSWORD
     - stage: docker build, deploy, and test
       services:
       - docker
       install:
         - true
       before_script:
-      # Start CouchDB and Inventory Containers and Create a Test User
+      # Start CouchDB and Customer Containers and Create a Test User
       - bash scripts/start_customer.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
       script:
       # Get Customer Container IP Address
@@ -54,7 +54,7 @@ jobs:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
       # Start Auth Container and Connect to Customer Service
-      - docker run --name auth -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8080 -e HS256_KEY=${HS256_KEY} -p 8080:8080 -d "${IMAGE_NAME}:${TAG}"
+      - docker run --name auth -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8082 -e HS256_KEY=${HS256_KEY} -p 8083:8083 -d "${IMAGE_NAME}:${TAG}"
       # Wait for the Auth container to start accepting connections
       - sleep 25
       # Check that the Auth container is running
@@ -62,7 +62,7 @@ jobs:
       # Check logs to see if it started properly
       - docker logs auth
       # Run Auth API Test
-      - bash scripts/api_tests.sh 127.0.0.1 8080 $TEST_USER $TEST_PASSWORD
+      - bash scripts/api_tests.sh 127.0.0.1 8083 $TEST_USER $TEST_PASSWORD
     - stage: kubernetes build, deploy, and test
       services:
       - docker
@@ -88,7 +88,7 @@ jobs:
       - helm package chart/auth
       # helm install Auth from packaged chart. Use pullPolicy=Never so it uses local docker image
       - CHART_VERSION="$(cat chart/auth/Chart.yaml | grep version | awk '{print $2}')"
-      - helm upgrade --install auth --set service.type=NodePort,image.repository="${IMAGE_NAME}",image.tag="${TAG}",image.pullPolicy=Never,customer.url=http://customer-customer:8080 auth-${CHART_VERSION}.tgz
+      - helm upgrade --install auth --set service.type=NodePort,image.repository="${IMAGE_NAME}",image.tag="${TAG}",image.pullPolicy=Never,customer.url=http://customer-customer:8082 auth-${CHART_VERSION}.tgz
       # Wait for Auth to be ready
       - kubectl get deployments ${RELEASE_NAME}-auth -o yaml
       - READY=$(kubectl get deployments ${RELEASE_NAME}-auth -o yaml | grep "readyReplicas" | awk '{print $2}')

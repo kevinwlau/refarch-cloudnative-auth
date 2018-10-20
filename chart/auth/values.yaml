@@ -7,8 +7,8 @@ image:
 
 service:
   type: ClusterIP
-  externalPort: 8080
-  internalPort: 8080
+  externalPort: 8083
+  internalPort: 8083
   nodePort: 31383
 
 ingress:

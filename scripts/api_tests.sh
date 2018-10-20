@@ -21,7 +21,7 @@ function parse_arguments() {
 
 	if [ -z "${AUTH_PORT}" ]; then
 		echo "AUTH_PORT not set. Using default key";
-		AUTH_PORT=8080;
+		AUTH_PORT=8083;
 	fi
 
 	# TEST_USER

@@ -24,7 +24,7 @@ function create_jwt() {
 }
 
 function create_user() {
-	CURL=$(curl --write-out %{http_code} --silent --output /dev/null --max-time 5 -X POST "http://localhost:8081/micro/customer" -H "Content-type: application/json" -H "Authorization: Bearer ${jwt}" -d "{\"username\": \"${TEST_USER}\", \"password\": \"${TEST_PASSWORD}\", \"firstName\": \"user\", \"lastName\": \"name\", \"email\": \"user@name.com\"}");
+	CURL=$(curl --write-out %{http_code} --silent --output /dev/null --max-time 5 -X POST "http://localhost:8082/micro/customer" -H "Content-type: application/json" -H "Authorization: Bearer ${jwt}" -d "{\"username\": \"${TEST_USER}\", \"password\": \"${TEST_PASSWORD}\", \"firstName\": \"user\", \"lastName\": \"name\", \"email\": \"user@name.com\"}");
 
 	# Check for 201 Status Code
 	if [ "$CURL" != "201" ]; then
@@ -53,7 +53,7 @@ COUCHDB_IP=$(docker inspect couchdb | jq -r '.[0].NetworkSettings.IPAddress')
 echo "Starting Customer container"
 COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
 echo "COUCHDB_URI=http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
-docker run --name customer -d -p 8081:8080 -e HS256_KEY=${HS256_KEY} -e COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984" ibmcase/bluecompute-customer:0.5.0
+docker run --name customer -d -p 8082:8082 -e HS256_KEY=${HS256_KEY} -e COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984" ibmcase/bluecompute-customer:0.5.0
 # Wait for the Customer container to start accepting connections
 echo "Waiting 25 seconds for Customer to start"
 sleep 25
