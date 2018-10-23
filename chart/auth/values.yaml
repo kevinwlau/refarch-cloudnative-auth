@@ -47,3 +47,8 @@ resources:
     memory: 384Mi
   requests:
     memory: 64Mi
+
+labels:
+  app: auth
+  version: v1
+  tier: backend
