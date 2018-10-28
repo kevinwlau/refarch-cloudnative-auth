@@ -8,9 +8,9 @@
 
 {{/* Auth Labels Template */}}
 {{- define "auth.labels" }}
-app: bluecompute
-micro: auth
-tier: backend
+{{- range $key, $value := .Values.labels }}
+{{ $key }}: {{ $value | quote }}
+{{- end }}
 heritage: {{ .Release.Service | quote }}
 release: {{ .Release.Name | quote }}
 chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
@@ -38,7 +38,7 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     {{ .Values.customer.url }}
   {{- else -}}
     {{/* assume one is installed with release */}}
-    {{- printf "http://%s-customer:8080" .Release.Name -}}
+    {{- printf "http://%s-customer:8082" .Release.Name -}}
   {{- end }}
 {{- end -}}
 

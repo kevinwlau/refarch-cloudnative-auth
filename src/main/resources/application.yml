@@ -11,7 +11,7 @@ eureka:
 # Server configuration
 server:
   context-path:
-  port: 8080
+  port: 8083
 
 # Spring properties
 spring:
@@ -26,4 +26,4 @@ jwt:
   sharedSecret: 
      
 customerService:
-  url: http://customer-service:8080
+  url: http://customer-service:8082

@@ -52,5 +52,5 @@ $ git clone http://github.com/refarch-cloudnative-micro-auth.git
 $ cd refarch-cloudnative-micro-auth/chart/auth
 
 # Deploy Auth to Kubernetes cluster
-$ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8080 .
+$ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8082 .
 ```

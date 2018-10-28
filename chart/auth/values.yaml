@@ -7,8 +7,8 @@ image:
 
 service:
   type: ClusterIP
-  externalPort: 8080
-  internalPort: 8080
+  externalPort: 8083
+  internalPort: 8083
   nodePort: 31383
 
 ingress:
@@ -47,3 +47,8 @@ resources:
     memory: 384Mi
   requests:
     memory: 64Mi
+
+labels:
+  app: auth
+  version: v1
+  tier: backend

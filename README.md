@@ -91,7 +91,7 @@ $ helm upgrade --install customer ibmcase-charts/customer
 $ cd chart/auth
 
 # Deploy Auth to Kubernetes cluster
-$ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8080 .
+$ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8082 .
 ```
 
 The last command will give you instructions on how to access/test the Auth application. Please note that before the Auth application starts, the Customer deployment must be fully up and running, which normally takes a couple of minutes. With Kubernetes [Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), the Auth Deployment polls for Customer readiness status so that Auth can start once Customer is ready, or error out if Customer fails to start.
@@ -105,7 +105,7 @@ auth-auth             1         1         1            1           10h
 
 The `-w` flag is so that the command above not only retrieves the deployment but also listens for changes. If you a 1 under the `CURRENT` column, that means that the auth app deployment is ready.
 
-In the following section you validate that the Auth chart was deployed successfully. Make sure to use the `${NODE_IP}` and `${PORT}` that you get from the chart install output instead of `localhost` and `8080`.
+In the following section you validate that the Auth chart was deployed successfully. Make sure to use the `${NODE_IP}` and `${PORT}` that you get from the chart install output instead of `localhost` and `8083`.
 
 ## Validate Auth Service
 
@@ -115,7 +115,7 @@ The [Web Application](https://github.com/ibm-cloud-architecture/refarch-cloudnat
 $ curl -i \
    -X POST \
    -u bluecomputeweb:bluecomputewebs3cret \
-   http://localhost:8080/oauth/token?grant_type=password\&username=user\&password=passw0rd\&scope=blue
+   http://localhost:8083/oauth/token?grant_type=password\&username=user\&password=passw0rd\&scope=blue
 
 HTTP/1.1 200 OK
 Date: Thu, 23 Aug 2018 20:22:50 GMT
@@ -125,7 +125,7 @@ Cache-Control: no-cache, no-store, max-age=0, must-revalidate
 Pragma: no-cache
 Expires: 0
 X-Frame-Options: DENY
-X-Application-Context: auth-microservice:8080
+X-Application-Context: auth-microservice:8083
 Cache-Control: no-store
 Pragma: no-cache
 Content-Type: application/json;charset=UTF-8
@@ -142,7 +142,7 @@ The [Mobile application](https://github.com/ibm-cloud-architecture/refarch-cloud
 
 To validate that this works, open a browser window and navigate to the following URL.  This requests the token with scope `blue` using the client id `bluecomputemobile` with the client secret `bluecomputemobiles3cret`. When the full authorization flow is completed, the authorization server will redirect the browser to `https://ibm.com`.
 
-* http://localhost:8080/oauth/authorize?client_id=bluecomputemobile&client_secret=bluecomputemobiles3cret&response_type=token&redirect_uri=https://ibm.com
+* http://localhost:8083/oauth/authorize?client_id=bluecomputemobile&client_secret=bluecomputemobiles3cret&response_type=token&redirect_uri=https://ibm.com
 
 ![Application Architecture](static/images/1_enter_credentials.png?raw=true)
 
@@ -180,9 +180,9 @@ $ docker build -t auth .
 
 # Start the Auth Container
 $ docker run --name auth \
-    -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8080 \
+    -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8082 \
     -e HS256_KEY=${HS256_KEY} \
-    -p 8080:8080 \
+    -p 8083:8083 \
     -d auth
 ```
 
@@ -207,8 +207,8 @@ $ ./gradlew build
 ```bash
 $ java \
   -Djwt.sharedSecret=${HS256_KEY} \
-  -DauthService.url=http://localhost:8080 \
-  -Dserver.port=8080 \
+  -DcustomerService.url=http://localhost:8082 \
+  -Dserver.port=8083 \
   -jar build/libs/micro-auth-0.0.1.jar
 ```
 
