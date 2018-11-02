@@ -18,6 +18,7 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 
 {{/* Customer Init Container Template */}}
 {{- define "auth.customer.initcontainer" }}
+{{- if not (or .Values.global.istio.enabled .Values.istio.enabled) }}
 - name: test-customer
   image: {{ .Values.bash.image.repository }}:{{ .Values.bash.image.tag }}
   imagePullPolicy: {{ .Values.bash.image.pullPolicy }}
@@ -25,6 +26,7 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
   - "/bin/bash"
   - "-c"
   - "until curl --max-time 1 {{ include "auth.customer.url" . }}; do echo waiting for customer-service; sleep 1; done"
+{{- end }}
 {{- end }}
 
 {{/* Auth Customer URL Environment Variables */}}
