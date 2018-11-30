@@ -7,7 +7,7 @@ image:
   repository: ibmcase/auth-mp
   #repository: auth-mp
   tag: v3.0.0
-  #pullPolicy: IfNotPresent
+  pullPolicy: Always
   resources:
     requests:
       cpu: 200m

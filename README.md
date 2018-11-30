@@ -2,6 +2,8 @@
 
 # Secure REST API with OpenID Connect Provider
 
+[![Build Status](https://api.travis-ci.org/ibm-cloud-architecture/refarch-cloudnative-auth.svg?branch=microprofile)](https://travis-ci.org/ibm-cloud-architecture/refarch-cloudnative-auth)
+
 *This repository contains the **MicroProfile** implementation of the **Auth Service** which is a part of the 'IBM Cloud Native Reference Architecture' suite, available at https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes*
 
 <p align="center">
@@ -166,9 +168,11 @@ To deploy it on IBM Cloud Private, please follow the instructions provided [here
 
 To deploy it on Minikube, please follow the instructions provided [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/microprofile#locally-in-minikube).
 
-### Run The Auth Service locally
+### Run Auth Service locally
+
 To deploy the app locally and test the individual service, please follow the instructions provided
 [here](building-locally.md)
+
 ## References
 
 1. [Microprofile](https://microprofile.io/)

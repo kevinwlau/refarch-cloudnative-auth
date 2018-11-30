@@ -1,0 +1,63 @@
+sudo: required
+language: java
+env:
+  global:
+    - IMAGE_NAME=auth-mp
+    - RELEASE_NAME=auth
+    - TAG=travis-latest
+    - TEST_USER=user
+    - TEST_PASSWORD=password
+stages:
+  - local build and test
+  - docker build, deploy, and test
+  - kubernetes build, deploy, and test
+jobs:
+  include:
+    - stage: local build and test
+      services:
+      - docker
+      before_script:
+      # Generate keystore
+      - bash scripts/keygen.sh
+      script:
+      # Maven Build
+      - mvn install
+      # Start Application
+      - mvn liberty:start-server -DtestServerHttpPort=9083 -DtestServerHttpsPort=9444 -DjwksIssuer=https://localhost:9444/oidc/endpoint/OP
+      # Wait for the Auth container to start accepting connections
+      - sleep 25
+      # Run Auth API Test
+      - bash scripts/api_tests.sh 127.0.0.1 9444 $TEST_USER $TEST_PASSWORD
+      after_script:
+      # Reset keystore
+      - bash scripts/keygenreset.sh
+    - stage: kubernetes build, deploy, and test
+      services:
+      - docker
+      env:
+      - CHANGE_MINIKUBE_NONE_USER=true
+      install:
+        - true
+      before_script:
+      # Install nsenter, which is needed for minikube to work
+      - bash scripts/install_minikube_and_helm.sh
+      # Run Kubernetes Job
+      - helm install --name keystore services-bc-mp/keystore
+      script:
+      # Maven Build
+      - mvn install
+      # Build Docker image
+      - docker build -t "${IMAGE_NAME}:${TAG}" .
+      # Install Auth
+      - helm install --set image.repository=${IMAGE_NAME} --set image.tag=${TAG} --set image.pullPolicy=Never --name auth ./chart/auth/
+      # Wait for Auth to be ready
+      - kubectl get deployments ${RELEASE_NAME}-auth -o yaml
+      - READY=$(kubectl get deployments ${RELEASE_NAME}-auth -o yaml | grep "readyReplicas" | awk '{print $2}')
+      - echo $READY
+      - until [ -n "$READY" ] && [ ${READY} -ge 1 ]; do READY=$(kubectl get deployments ${RELEASE_NAME}-auth -o yaml | grep "readyReplicas" | awk '{print $2}'); kubectl get deployments -o wide; echo "Waiting for auth to be ready"; sleep 10; done
+      # Wait for auth deployment to start accepting connections
+      - sleep 35
+      # Run auth API Test
+      - MINIKUBE_IP=$(minikube ip)
+      - NODE_PORT=$(kubectl get service ${RELEASE_NAME}-auth -o=jsonpath='{.spec.ports[1].nodePort}')
+      - bash scripts/api_tests.sh $MINIKUBE_IP $NODE_PORT
