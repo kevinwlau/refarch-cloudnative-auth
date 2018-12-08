@@ -35,7 +35,7 @@ jobs:
       # Gradle Build
       - ./gradlew build
       # Start Application
-      - java -Djwt.sharedSecret=${HS256_KEY} -DcustomerService.url=http://localhost:8082 -Dserver.port=8083 -jar build/libs/micro-auth-0.0.1.jar &
+      - java -jar build/libs/micro-auth-0.0.1.jar &
       # Wait for the Inventory container to start accepting connections
       - sleep 25
       # Run Auth API Test
@@ -54,7 +54,7 @@ jobs:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
       # Start Auth Container and Connect to Customer Service
-      - docker run --name auth -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8082 -e HS256_KEY=${HS256_KEY} -p 8083:8083 -d "${IMAGE_NAME}:${TAG}"
+      - docker run --name auth -e CUSTOMER_URL=http://${CUSTOMER_IP_ADDRESS}:8082 -e HS256_KEY=${HS256_KEY} -p 8083:8083 -d "${IMAGE_NAME}:${TAG}"
       # Wait for the Auth container to start accepting connections
       - sleep 25
       # Check that the Auth container is running

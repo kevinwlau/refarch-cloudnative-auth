@@ -16,6 +16,12 @@ release: {{ .Release.Name | quote }}
 chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- end }}
 
+{{/* Auth Environment Variables */}}
+{{- define "auth.environmentvariables" }}
+- name: SERVICE_PORT
+  value: {{ .Values.service.internalPort | quote }}
+{{- end }}
+
 {{/* Customer Init Container Template */}}
 {{- define "auth.customer.initcontainer" }}
 {{- if not (or .Values.global.istio.enabled .Values.istio.enabled) }}
@@ -31,7 +37,7 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 
 {{/* Auth Customer URL Environment Variables */}}
 {{- define "auth.customer.environmentvariables" }}
-- name: CUSTOMERSERVICE_URL
+- name: CUSTOMER_URL
   value: {{ template "auth.customer.url" . }}
 {{- end }}
 
