@@ -51,9 +51,9 @@ function parse_arguments() {
 
 function obtain_password_token() {
 	TOKEN=$(curl -X POST -u bluecomputeweb:bluecomputewebs3cret http://${AUTH_HOST}:${AUTH_PORT}/oauth/token\?grant_type\=password\&username\=${TEST_USER}\&password\=${TEST_PASSWORD}\&scope\=blue | jq -r '.access_token');
-
+	#echo "TOKEN = ${TOKEN}"
 	# Check that token was returned
-	if [ -n "${TOKEN}" ]; then
+	if [ -n "${TOKEN}" ] && [ "${TOKEN}" != "null" ]; then
     	echo "obtain_password_token: ✅";
     else
 		printf "obtain_password_token: ❌ \n${CURL}\n";

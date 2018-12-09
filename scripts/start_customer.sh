@@ -30,7 +30,7 @@ function create_user() {
 	if [ "$CURL" != "201" ]; then
 		printf "create_user: ❌ \n${CURL}\n";
         exit 1;
-    else 
+    else
     	echo "create_user: ✅";
     fi
 }
@@ -50,10 +50,8 @@ echo "Getting CouchDB container IP Address"
 COUCHDB_IP=$(docker inspect couchdb | jq -r '.[0].NetworkSettings.IPAddress')
 
 # Start Customer Container and Connect to local MySQL Service
-echo "Starting Customer container"
-COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
-echo "COUCHDB_URI=http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
-docker run --name customer -d -p 8082:8082 -e HS256_KEY=${HS256_KEY} -e COUCHDB_URI="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984" ibmcase/bluecompute-customer:0.5.0
+echo "Starting Customer container at http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@${COUCHDB_IP}:5984"
+docker run --name customer -d -p 8082:8082 -e COUCHDB_HOST="${COUCHDB_IP}" -e COUCHDB_PORT="5984" -e HS256_KEY="${HS256_KEY}" ibmcase/bluecompute-customer:0.6.0
 # Wait for the Customer container to start accepting connections
 echo "Waiting 25 seconds for Customer to start"
 sleep 25

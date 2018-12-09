@@ -31,19 +31,19 @@ Here is an overview of the project's features:
 - Uses [`Spring Feign Client`](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-feign.html) to call Auth Microservice to validate login credentials.
 - Return a signed [JWT](https://jwt.io) Bearer token back to caller for identity propagation and authorization
 - Uses [`Docker`](https://docs.docker.com/) to package application binary and its dependencies.
-- Uses [`Helm`](https://helm.sh/) to package application and Auth deployment configuration and deploy to a [`Kubernetes`](https://kubernetes.io/) cluster. 
+- Uses [`Helm`](https://helm.sh/) to package application and Auth deployment configuration and deploy to a [`Kubernetes`](https://kubernetes.io/) cluster.
 
 ### Interaction with Identity Provider (Auth Microservice)
 
 ![Application Architecture](static/diagrams/auth.png?raw=true)
 
-* The Authorization microservice leverages the [Auth Microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/tree/spring) as an identity provider.  
-* When username/password is passed in, the Authorization microservice calls the Auth microservice using Spring Feign Client.  
+* The Authorization microservice leverages the [Auth Microservice](https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/tree/spring) as an identity provider.
+* When username/password is passed in, the Authorization microservice calls the Auth microservice using Spring Feign Client.
 * Authorization microservice checks the password against the password returned by the Auth API.  If it matches, `HTTP 200` is returned to indicate that the username/password are valid, `HTTP 401` is returned to indicate that the username/password is invalid.
 
   *Note that this is only meant as a demonstration on how to implement a custom identity provider and shouldn't be used in production, as the passwords are returned in compared in plaintext instead of using secure one-way hashes.*
 
-### Interaction with Resource Server API 
+### Interaction with Resource Server API
 ![Application Architecture](static/diagrams/auth_orders.png?raw=true)
 
 * When a client wishes to acquire an OAuth token to call a protected API, it calls the OAuth Provider (Authorization microservice) token endpoint with the username/password of the user and requests a token with scope `blue`.
@@ -70,11 +70,11 @@ The BlueCompute application has one scope, `blue`.
 In this section, we are going to deploy the Auth Application, along with a Customer service, to a Kubernetes cluster using Helm. To do so, follow the instructions below:
 ```bash
 # Add helm repos for Customer and CouchDB Charts
-$ helm repo add ibmcase-charts https://raw.githubusercontent.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/spring/docs/charts
-$ helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+helm repo add ibmcase-charts https://raw.githubusercontent.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/spring/docs/charts
+helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
 
 # Install CouchDB Chart
-$ helm upgrade --install couchdb \
+helm upgrade --install couchdb \
   --version 0.2.2 \
   --set fullnameOverride=customer-couchdb \
   --set service.externalPort=5985 \
@@ -86,20 +86,20 @@ $ helm upgrade --install couchdb \
   incubator/couchdb
 
 # Install Customer Chart
-$ helm upgrade --install customer ibmcase-charts/customer
+helm upgrade --install customer ibmcase-charts/customer
 
 # Go to Chart Directory
-$ cd chart/auth
+cd chart/auth
 
 # Deploy Auth to Kubernetes cluster
-$ helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8082 .
+helm upgrade --install auth --set service.type=NodePort,customer.url=http://customer-customer:8082 .
 ```
 
 The last command will give you instructions on how to access/test the Auth application. Please note that before the Auth application starts, the Customer deployment must be fully up and running, which normally takes a couple of minutes. With Kubernetes [Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/), the Auth Deployment polls for Customer readiness status so that Auth can start once Customer is ready, or error out if Customer fails to start.
 
 To check and wait for the deployment status, you can run the following command:
 ```bash
-$ kubectl get deployments -w
+kubectl get deployments -w
 NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 auth-auth             1         1         1            1           10h
 ```
@@ -113,7 +113,7 @@ In the following section you validate that the Auth chart was deployed successfu
 ### Validate the password flow of the authorization service
 The [Web Application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web/tree/spring) uses the password flow to obtain a password token.  It uses Client ID `bluecomputeweb` and Client Secret `bluecomputewebs3cret`.  For a user `user` with password `passw0rd`, run the following to obtain an access token with scope `blue`:
 ```bash
-$ curl -i \
+curl -i \
    -X POST \
    -u bluecomputeweb:bluecomputewebs3cret \
    http://localhost:8083/oauth/token?grant_type=password\&username=user\&password=passw0rd\&scope=blue
@@ -139,7 +139,7 @@ Server: Jetty(9.2.16.v20160414)
 The response JSON returned will contain an `access_token`.  Use the debugger at [jwt.io](https://jwt.io) to decode the token and validate the signature by pasting the `access_token` into the `Encoded` text field, and pasting the HS256 shared secret in the `Verify Signature` text box.  You should observe the `client_id` and `scope` claims in the payload correspond to the client ID and scope passed in on the request query, the `user_name` corresponds to the auth ID of `user` returned from the Auth Service, and the signature is verified.
 
 ### Validate the implicit flow of the authorization service
-The [Mobile application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-mobile) uses the implicit flow to create a token by opening a browser and retrieving the OAuth token once the authorization flow is complete.  
+The [Mobile application](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-mobile) uses the implicit flow to create a token by opening a browser and retrieving the OAuth token once the authorization flow is complete.
 
 To validate that this works, open a browser window and navigate to the following URL.  This requests the token with scope `blue` using the client id `bluecomputemobile` with the client secret `bluecomputemobiles3cret`. When the full authorization flow is completed, the authorization server will redirect the browser to `https://ibm.com`.
 
@@ -166,7 +166,7 @@ https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer/tre
 Lastly, you must obtain the customer container's IP address:
 ```bash
 # Get the Customer Container's IP Address
-$ docker inspect customer | grep "IPAddress"
+docker inspect customer | grep "IPAddress"
             "SecondaryIPAddresses": null,
             "IPAddress": "172.17.0.2",
                     "IPAddress": "172.17.0.2",
@@ -177,10 +177,10 @@ Make sure to select the IP Address in the `IPAddress` field. You will use this I
 To deploy the Auth container, run the following commands:
 ```bash
 # Build the Docker Image
-$ docker build -t auth .
+docker build -t auth .
 
 # Start the Auth Container
-$ docker run --name auth \
+docker run --name auth \
     -e CUSTOMERSERVICE_URL=http://${CUSTOMER_IP_ADDRESS}:8082 \
     -e HS256_KEY=${HS256_KEY} \
     -p 8083:8083 \
@@ -190,7 +190,7 @@ $ docker run --name auth \
 Where:
 * `${CUSTOMER_IP_ADDRESS}` is the IP address of the Customer container, which is only accessible from the Docker container network.
 * `${HS256_KEY}` is the 2048-bit secret, which must match that of the customer service.
-  + [Here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer/tree/spring#b-create-a-temporary-hs256-shared-secret) the key that's used in the customer service, along with instructions on how to create your own. 
+  + [Here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-micro-customer/tree/spring#b-create-a-temporary-hs256-shared-secret) the key that's used in the customer service, along with instructions on how to create your own.
 
 You have successfully deployed the Auth container! To validate, follow the instructions in the [Validate Auth Service](#validate-auth-service) section.
 
@@ -201,22 +201,18 @@ Once Customer is ready, we can run the Spring Boot Auth application locally as f
 
 1. Build the application:
 ```bash
-$ ./gradlew build
+./gradlew build
 ```
 
 2. Run the application on localhost:
 ```bash
-$ java \
-  -Djwt.sharedSecret=${HS256_KEY} \
-  -DcustomerService.url=http://localhost:8082 \
-  -Dserver.port=8083 \
-  -jar build/libs/micro-auth-0.0.1.jar
+java -jar build/libs/micro-auth-0.0.1.jar
 ```
 
 You have successfully deployed the Auth service locally! To validate, follow the instructions in the [Validate Auth Service](#validate-auth-service) section.
 
 ## Optional: Setup CI/CD Pipeline
-If you would like to setup an automated Jenkins CI/CD Pipeline for this repository, we provided a sample [Jenkinsfile](Jenkinsfile), which uses the [Jenkins Pipeline](https://jenkins.io/doc/book/pipeline/) syntax of the [Jenkins Kubernetes Plugin](https://github.com/jenkinsci/kubernetes-plugin) to automatically create and run Jenkis Pipelines from your Kubernetes environment. 
+If you would like to setup an automated Jenkins CI/CD Pipeline for this repository, we provided a sample [Jenkinsfile](Jenkinsfile), which uses the [Jenkins Pipeline](https://jenkins.io/doc/book/pipeline/) syntax of the [Jenkins Kubernetes Plugin](https://github.com/jenkinsci/kubernetes-plugin) to automatically create and run Jenkis Pipelines from your Kubernetes environment.
 
 To learn how to use this sample pipeline, follow the guide below and enter the corresponding values for your environment and for this repository:
 * https://github.com/ibm-cloud-architecture/refarch-cloudnative-devops-kubernetes
