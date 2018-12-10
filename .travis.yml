@@ -76,7 +76,7 @@ jobs:
       # Install CouchDB Chart
       - helm upgrade --install couchdb --version 0.2.2 --set service.externalPort=5985,fullnameOverride=customer-couchdb,createAdminSecret=true,adminUsername=${COUCHDB_USER},adminPassword=${COUCHDB_PASSWORD},clusterSize=1,persistentVolume.enabled=false incubator/couchdb
       # Install Customer Chart
-      - helm upgrade --install customer --set couchdb.adminUsername=${COUCHDB_USER},couchdb.adminPassword=${COUCHDB_PASSWORD},testUser.createUser=true,testUser.username=${TEST_USER},testUser.password=${TEST_PASSWORD} ibmcase-charts/customer
+      - helm upgrade --install customer --version 0.6.0 --set couchdb.adminUsername=${COUCHDB_USER},couchdb.adminPassword=${COUCHDB_PASSWORD},testUser.createUser=true,testUser.username=${TEST_USER},testUser.password=${TEST_PASSWORD} ibmcase-charts/customer
       script:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
