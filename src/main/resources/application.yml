@@ -18,7 +18,7 @@ security:
   ignored: /*.css
 
 jwt:
-  sharedSecret: ${HS256_KEY}
+  sharedSecret: ${HS256_KEY:}
 
 customerService:
   url: ${CUSTOMER_URL:http://127.0.0.1:8082}
