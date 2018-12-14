@@ -9,6 +9,9 @@ server:
   context-path:
   port: ${SERVICE_PORT:8083}
 
+management:
+  port: ${MANAGEMENT_PORT:8093}
+
 # Spring properties
 spring:
   application:
