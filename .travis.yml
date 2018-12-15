@@ -7,11 +7,18 @@ env:
     - IMAGE_NAME=bluecompute-auth
     - RELEASE_NAME=auth
     - TAG=travis-latest
+    - SERVICE_PORT=8083
+    - MANAGEMENT_PORT=8094
     - HS256_KEY=E6526VJkKYhyTFRFMC0pTECpHcZ7TGcq8pKsVVgz9KtESVpheEO284qKzfzg8HpWNBPeHOxNGlyudUHi6i8tFQJXC8PiI48RUpMh23vPDLGD35pCM0417gf58z5xlmRNii56fwRCmIhhV7hDsm3KO2jRv4EBVz7HrYbzFeqI45CaStkMYNipzSm2duuer7zRdMjEKIdqsby0JfpQpykHmC5L6hxkX0BT7XWqztTr6xHCwqst26O0g8r7bXSYjp4a
     - COUCHDB_USER=admin
     - COUCHDB_PASSWORD=passw0rd
     - TEST_USER=testuser
     - TEST_PASSWORD=passw0rd
+    # Customer
+    - CUSTOMER_IMAGE_NAME=ibmcase/bluecompute-customer:0.6.0
+    - CUSTOMER_SERVICE_PORT=8082
+    - CUSTOMER_MANAGEMENT_PORT=8092
+    - CUSTOMER_RELEASE_NAME=customer
 stages:
   - local build and test
   - docker build, deploy, and test
@@ -29,17 +36,17 @@ jobs:
           - $HOME/.gradle/caches/
           - $HOME/.gradle/wrapper/
       before_script:
-      # Start CouchDB and Inventory Containers and Create a Test User
+      # Start CouchDB and Customer Containers and Create a Test User
       - bash scripts/start_customer.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
       script:
       # Gradle Build
       - ./gradlew build
       # Start Application
-      - java -jar build/libs/micro-auth-0.0.1.jar &
-      # Wait for the Inventory container to start accepting connections
-      - sleep 25
-      # Run Auth API Test
-      - bash scripts/api_tests.sh 127.0.0.1 8083 $TEST_USER $TEST_PASSWORD
+      - java -jar build/libs/micro-${RELEASE_NAME}-0.0.1.jar &
+      # Let the application start
+      - bash scripts/health_check.sh
+      # Run API Test
+      - bash scripts/api_tests.sh 127.0.0.1 ${SERVICE_PORT} $TEST_USER $TEST_PASSWORD
     - stage: docker build, deploy, and test
       services:
       - docker
@@ -48,55 +55,59 @@ jobs:
       before_script:
       # Start CouchDB and Customer Containers and Create a Test User
       - bash scripts/start_customer.sh $HS256_KEY $COUCHDB_USER $COUCHDB_PASSWORD $TEST_USER $TEST_PASSWORD
-      script:
       # Get Customer Container IP Address
       - CUSTOMER_IP_ADDRESS=$(docker inspect customer | jq -r '.[0].NetworkSettings.IPAddress')
+      script:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
-      # Start Auth Container and Connect to Customer Service
-      - docker run --name auth -e CUSTOMER_URL=http://${CUSTOMER_IP_ADDRESS}:8082 -e HS256_KEY=${HS256_KEY} -p 8083:8083 -d "${IMAGE_NAME}:${TAG}"
-      # Wait for the Auth container to start accepting connections
-      - sleep 25
-      # Check that the Auth container is running
+       # Start Auth Container and Connect to Customer Service
+      - docker run --name ${RELEASE_NAME} -d -p ${SERVICE_PORT}:${SERVICE_PORT} -p ${MANAGEMENT_PORT}:${MANAGEMENT_PORT} -e CUSTOMER_URL=http://${CUSTOMER_IP_ADDRESS}:${CUSTOMER_SERVICE_PORT} -e HS256_KEY=${HS256_KEY} "${IMAGE_NAME}:${TAG}"
+      # Check that the container is running
       - docker ps
       # Check logs to see if it started properly
-      - docker logs auth
-      # Run Auth API Test
-      - bash scripts/api_tests.sh 127.0.0.1 8083 $TEST_USER $TEST_PASSWORD
+      - docker logs -f ${RELEASE_NAME} &
+      # Let the application start
+      - bash scripts/health_check.sh
+      # Run API Test
+      - bash scripts/api_tests.sh 127.0.0.1 ${SERVICE_PORT} $TEST_USER $TEST_PASSWORD
     - stage: kubernetes build, deploy, and test
       services:
       - docker
       env:
       - CHANGE_MINIKUBE_NONE_USER=true
+      - CHART_NAME=auth
+      - CUSTOMER_CHART_NAME=customer
       install:
         - true
       before_script:
       # Install nsenter, which is needed for minikube to work
       - bash scripts/install_minikube_and_helm.sh
       # Install CouchDB Chart
-      - helm upgrade --install couchdb --version 0.2.2 --set service.externalPort=5985,fullnameOverride=customer-couchdb,createAdminSecret=true,adminUsername=${COUCHDB_USER},adminPassword=${COUCHDB_PASSWORD},clusterSize=1,persistentVolume.enabled=false incubator/couchdb
+      - helm upgrade --install couchdb --version 0.2.2 --set service.externalPort=5985,fullnameOverride=${CUSTOMER_RELEASE_NAME}-couchdb,createAdminSecret=true,adminUsername=${COUCHDB_USER},adminPassword=${COUCHDB_PASSWORD},clusterSize=1,persistentVolume.enabled=false incubator/couchdb
       # Install Customer Chart
-      - helm upgrade --install customer --version 0.6.0 --set couchdb.adminUsername=${COUCHDB_USER},couchdb.adminPassword=${COUCHDB_PASSWORD},testUser.createUser=true,testUser.username=${TEST_USER},testUser.password=${TEST_PASSWORD} ibmcase-charts/customer
+      - helm upgrade --install ${CUSTOMER_RELEASE_NAME} --version 0.6.0 --set couchdb.adminUsername=${COUCHDB_USER},couchdb.adminPassword=${COUCHDB_PASSWORD},testUser.createUser=true,testUser.username=${TEST_USER},testUser.password=${TEST_PASSWORD} ibmcase-charts/${CUSTOMER_CHART_NAME}
+      # Wait for deployment to be ready
+      - kubectl rollout status deployment/${CUSTOMER_RELEASE_NAME}-${CUSTOMER_CHART_NAME}
       script:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
-      # Download Auth chart dependencies (MySQL)
-      - cd chart/auth; helm dependency update; cd ../..
       # helm lint
-      - helm lint chart/auth
+      - helm lint chart/${CHART_NAME}
       # helm package
-      - helm package chart/auth
-      # helm install Auth from packaged chart. Use pullPolicy=Never so it uses local docker image
-      - CHART_VERSION="$(cat chart/auth/Chart.yaml | grep version | awk '{print $2}')"
-      - helm upgrade --install auth --set service.type=NodePort,image.repository="${IMAGE_NAME}",image.tag="${TAG}",image.pullPolicy=Never,customer.url=http://customer-customer:8082 auth-${CHART_VERSION}.tgz
-      # Wait for Auth to be ready
-      - kubectl get deployments ${RELEASE_NAME}-auth -o yaml
-      - READY=$(kubectl get deployments ${RELEASE_NAME}-auth -o yaml | grep "readyReplicas" | awk '{print $2}')
-      - echo $READY
-      - until [ -n "$READY" ] && [ ${READY} -ge 1 ]; do READY=$(kubectl get deployments ${RELEASE_NAME}-auth -o yaml | grep "readyReplicas" | awk '{print $2}'); kubectl get deployments -o wide; echo "Waiting for auth to be ready"; sleep 10; done
-      # Wait for Auth deployment to start accepting connections
-      - sleep 35
-      # Run Auth API Test`
-      - MINIKUBE_IP=$(minikube ip)
-      - NODE_PORT=$(kubectl get service ${RELEASE_NAME}-auth -o=jsonpath='{.spec.ports[0].nodePort}')
-      - bash scripts/api_tests.sh $MINIKUBE_IP $NODE_PORT $TEST_USER $TEST_PASSWORD
+      - helm package chart/${CHART_NAME}
+      # helm install from packaged chart. Use pullPolicy=Never so it uses local docker image
+      - CHART_VERSION="$(cat chart/${CHART_NAME}/Chart.yaml | grep version | awk '{print $2}')"
+      - helm upgrade --install ${RELEASE_NAME} --set image.repository="${IMAGE_NAME}",image.tag="${TAG}",image.pullPolicy=Never,customer.url=http://${CUSTOMER_RELEASE_NAME}-${CUSTOMER_CHART_NAME}:${CUSTOMER_SERVICE_PORT} ${CHART_NAME}-${CHART_VERSION}.tgz
+      # Get Deployment Name
+      - DEPLOYMENT="deployment/${RELEASE_NAME}-${CHART_NAME}"
+      # Wait for deployment to be ready
+      - kubectl logs -f ${DEPLOYMENT} &
+      - kubectl rollout status ${DEPLOYMENT}
+      # Port Forwarding
+      - kubectl port-forward ${DEPLOYMENT} ${SERVICE_PORT} ${MANAGEMENT_PORT} &
+      - echo "Sleeping for 3 seconds while connection is established..."
+      - sleep 3
+      # Let the application start
+      - bash scripts/health_check.sh
+      # Run API Test
+      - bash scripts/api_tests.sh 127.0.0.1 ${SERVICE_PORT} $TEST_USER $TEST_PASSWORD
