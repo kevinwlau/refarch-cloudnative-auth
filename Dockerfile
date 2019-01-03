@@ -34,5 +34,5 @@ RUN mv ./micro-auth-0.0.1.jar app.jar
 COPY startup.sh startup.sh
 COPY scripts scripts
 
-EXPOSE 8083
+EXPOSE 8083 8093
 ENTRYPOINT ["./startup.sh"]

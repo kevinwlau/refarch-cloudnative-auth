@@ -1,27 +1,26 @@
 #!/bin/bash
 
 function parse_arguments() {
-	#set -x;
-	# AUTH_HOST
-	if [ -z "${AUTH_HOST}" ]; then
-		echo "AUTH_HOST not set. Using parameter \"$1\"";
-		AUTH_HOST=$1;
+	# MICROSERVICE_HOST
+	if [ -z "${MICROSERVICE_HOST}" ]; then
+		echo "MICROSERVICE_HOST not set. Using parameter \"$1\"";
+		MICROSERVICE_HOST=$1;
 	fi
 
-	if [ -z "${AUTH_HOST}" ]; then
-		echo "AUTH_HOST not set. Using default key";
-		AUTH_HOST=127.0.0.1;
+	if [ -z "${MICROSERVICE_HOST}" ]; then
+		echo "MICROSERVICE_HOST not set. Using default key";
+		MICROSERVICE_HOST=127.0.0.1;
 	fi
 
-	# AUTH_PORT
-	if [ -z "${AUTH_PORT}" ]; then
-		echo "AUTH_PORT not set. Using parameter \"$2\"";
-		AUTH_PORT=$2;
+	# MICROSERVICE_PORT
+	if [ -z "${MICROSERVICE_PORT}" ]; then
+		echo "MICROSERVICE_PORT not set. Using parameter \"$2\"";
+		MICROSERVICE_PORT=$2;
 	fi
 
-	if [ -z "${AUTH_PORT}" ]; then
-		echo "AUTH_PORT not set. Using default key";
-		AUTH_PORT=8083;
+	if [ -z "${MICROSERVICE_PORT}" ]; then
+		echo "MICROSERVICE_PORT not set. Using default key";
+		MICROSERVICE_PORT=8083;
 	fi
 
 	# TEST_USER
@@ -46,12 +45,13 @@ function parse_arguments() {
 		TEST_PASSWORD=passw0rd;
 	fi
 
-	#set +x;
+	echo "Using http://${MICROSERVICE_HOST}:${MICROSERVICE_PORT}"
 }
 
 function obtain_password_token() {
-	TOKEN=$(curl -X POST -u bluecomputeweb:bluecomputewebs3cret http://${AUTH_HOST}:${AUTH_PORT}/oauth/token\?grant_type\=password\&username\=${TEST_USER}\&password\=${TEST_PASSWORD}\&scope\=blue | jq -r '.access_token');
-	#echo "TOKEN = ${TOKEN}"
+	TOKEN=$(curl -X POST -u bluecomputeweb:bluecomputewebs3cret http://${MICROSERVICE_HOST}:${MICROSERVICE_PORT}/oauth/token\?grant_type\=password\&username\=${TEST_USER}\&password\=${TEST_PASSWORD}\&scope\=blue | jq -r '.access_token');
+	echo "TOKEN = ${TOKEN}"
+
 	# Check that token was returned
 	if [ -n "${TOKEN}" ] && [ "${TOKEN}" != "null" ]; then
     	echo "obtain_password_token: ✅";
