@@ -86,8 +86,20 @@ jobs:
       - helm upgrade --install couchdb --version 0.2.2 --set service.externalPort=5985,fullnameOverride=${CUSTOMER_RELEASE_NAME}-couchdb,createAdminSecret=true,adminUsername=${COUCHDB_USER},adminPassword=${COUCHDB_PASSWORD},clusterSize=1,persistentVolume.enabled=false incubator/couchdb
       # Install Customer Chart
       - helm upgrade --install ${CUSTOMER_RELEASE_NAME} --version 0.6.0 --set couchdb.adminUsername=${COUCHDB_USER},couchdb.adminPassword=${COUCHDB_PASSWORD},testUser.createUser=true,testUser.username=${TEST_USER},testUser.password=${TEST_PASSWORD} ibmcase-charts/${CUSTOMER_CHART_NAME}
+      # Get Deployment Name
+      - DEPLOYMENT="deployment/${CUSTOMER_RELEASE_NAME}-${CUSTOMER_CHART_NAME}"
       # Wait for deployment to be ready
-      - kubectl rollout status deployment/${CUSTOMER_RELEASE_NAME}-${CUSTOMER_CHART_NAME}
+      - kubectl get pods -w &
+      - kubectl rollout status ${DEPLOYMENT}
+      # Get logs
+      - kubectl logs -f ${DEPLOYMENT} &
+      # Port Forwarding
+      - kubectl port-forward ${DEPLOYMENT} ${CUSTOMER_SERVICE_PORT} ${CUSTOMER_MANAGEMENT_PORT} &
+      - echo "Sleeping for 3 seconds while connection is established..."
+      - sleep 3
+      # Let the application start
+      - bash scripts/health_check.sh http://127.0.0.1:${CUSTOMER_MANAGEMENT_PORT}
+      - killall kubectl;
       script:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
