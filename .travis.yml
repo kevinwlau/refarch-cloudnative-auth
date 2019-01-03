@@ -99,7 +99,7 @@ jobs:
       - sleep 3
       # Let the application start
       - bash scripts/health_check.sh http://127.0.0.1:${CUSTOMER_MANAGEMENT_PORT}
-      - killall kubectl;
+      - killall kubectl
       script:
       # Build Docker image
       - docker build -t "${IMAGE_NAME}:${TAG}" .
