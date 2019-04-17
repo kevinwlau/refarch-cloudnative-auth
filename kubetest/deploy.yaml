@@ -1,0 +1,82 @@
+# Source: auth/templates/authentication-microprofile.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-auth
+  labels:
+    chart: "release-name-auth-0.0.1"
+    release: release-name
+    implementation: "microprofile"
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 9080
+  - name: https
+    port: 9443
+  selector:
+    app: bluecompute
+    micro: auth
+    service: server
+    release: release-name
+    implementation: "microprofile"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: release-name-auth
+  labels:
+    app: bluecompute
+    micro: auth
+    service: server
+    tier: backend
+    release: release-name
+    implementation: "microprofile"
+    chart: 'release-name-auth-0.0.1'
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: bluecompute
+        micro: auth
+        service: server
+        tier: backend
+        release: release-name
+        implementation: "microprofile"
+    spec:
+      containers:
+      - name: "auth"
+        image: "ibmcase/auth-mp:v3.0.0"
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          timeoutSeconds: 60
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9443
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          timeoutSeconds: 60
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "300Mi"
+        env:
+          - name: PORT
+            value: "9080"
+          - name: APPLICATION_NAME
+            value: "release-name"
+        volumeMounts:
+        - name: keystorevol
+          mountPath: "/etc/keystorevol"
+          readOnly: true
+      volumes:
+      - name: keystorevol
+        secret:
+          secretName: keystoresecret

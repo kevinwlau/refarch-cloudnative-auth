@@ -1,0 +1,9 @@
+apiVersion: authentication.istio.io/v1alpha1
+kind: Policy
+metadata:
+  name: auth-auth-policy
+spec:
+  targets:
+  - name: release-name-auth
+  peers:
+  - mtls:

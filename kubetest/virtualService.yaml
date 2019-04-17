@@ -1,0 +1,26 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: auth-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - auth-gateway
+  http:
+  - match:
+    - port: 80
+    route:
+    - destination:
+        host: release-name-auth
+        port:
+          number: 9080
+  tls:
+  - match:
+    - sniHosts:
+      - "*"
+    route:
+    - destination:
+        host: release-name-auth
+        port:
+          number: 9443
