@@ -19,10 +19,42 @@ service:
   servicePort: 9080
   servicePortHttps: 9443
 
-services:
-base:
+resources:
+  requests:
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 300Mi
+
+labels:
+  app: auth
+  version: v1
+  tier: backend
+  implementation: microprofile
+
+global:
+  istio:
+    enabled: false
+    gateway: 
+      name: auth-gateway
+
+istio:
   enabled: false
-  replicaCount: 1
-  image:
-    tag : v0.9.9
-  weight: 100
+  # ISTIO_MUTUAL, SIMPLE, DISABLE
+  # mTLS: ISTIO_MUTUAL
+  mTLS: SIMPLE
+  # LEAST_CONN, ROUND_ROBIN
+  loadBalancer: LEAST_CONN
+  gateway:
+    enabled: false
+    name: auth-gateway
+    hosts:
+      - "auth.bluecompute.com"
+    TLS:
+      enabled: false
+      # SIMPLE, MUTUAL
+      mode: SIMPLE
+      httpsRedirect: true
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+caCertificates: /etc/istio/ingressgateway-ca-certs/ca-chain.cert.pem

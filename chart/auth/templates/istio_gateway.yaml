@@ -1,0 +1,26 @@
+{{ if or .Values.global.istio.enabled .Values.istio.enabled }}
+{{ if and .Values.istio.gateway.enabled (not .Values.global.istio.gateway.name) }}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.service.name }}-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP2
+    hosts:
+    {{ toYaml .Values.istio.gateway.hosts }}
+{{- if .Values.istio.gateway.TLS.enabled }}
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    {{ toYaml .Values.istio.gateway.hosts }}
+{{- end }}
+{{ end }}
+{{ end }}
