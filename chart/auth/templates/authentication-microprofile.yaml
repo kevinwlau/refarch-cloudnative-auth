@@ -22,9 +22,9 @@ metadata:
     {{- include "auth.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-    selector:
-      matchLabels:
-        {{- include "auth.labels" . | indent 6 }}
+  selector:
+    matchLabels:
+      {{- include "auth.labels" . | indent 6 }}
   template:
     metadata:
       labels:
