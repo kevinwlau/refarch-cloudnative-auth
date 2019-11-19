@@ -52,5 +52,9 @@ spec:
     - destination:
         host: {{ .Release.Name }}
         port:
-          number: 9080
+          number: {{ .Values.service.servicePort }}
+        subset: v1
+    retries:
+      attempts: 4
+      retryOn: 5xx
 {{ end }}
