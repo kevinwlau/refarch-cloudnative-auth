@@ -2,7 +2,18 @@ apiVersion: v1
 entries:
   auth:
   - apiVersion: v1
-    created: "2019-10-03T16:17:02.471704-05:00"
+    created: "2019-11-19T16:05:24.654394-06:00"
+    description: A Helm chart for Kubernetes
+    digest: 4939dfeee1490b76c79642b1eeb06df1ef45ec59e186d56cb2aa4fde286e8627
+    home: https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/microprofile
+    name: auth
+    sources:
+    - https://github.com/ibm-cloud-architecture/refarch-cloudnative-auth/tree/microprofile
+    urls:
+    - auth-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v1
+    created: "2019-11-19T16:05:24.654116-06:00"
     description: A Helm chart for Kubernetes
     digest: b2af2b8169ba60172bf8afefcaa78ed5e36d1b305e93b58ba56e7b1767483761
     home: https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/microprofile
@@ -13,7 +24,7 @@ entries:
     - auth-0.1.1.tgz
     version: 0.1.1
   - apiVersion: v1
-    created: "2019-10-03T16:17:02.470757-05:00"
+    created: "2019-11-19T16:05:24.65331-06:00"
     description: A Helm chart for Kubernetes
     digest: 68b59aaa1b4d9c07f709473f4ea1ef2421fd4aafe1392f930065560eb3e44551
     home: https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/microprofile
@@ -24,7 +35,7 @@ entries:
     - auth-0.1.0.tgz
     version: 0.1.0
   - apiVersion: v1
-    created: "2019-10-03T16:17:02.470456-05:00"
+    created: "2019-11-19T16:05:24.652785-06:00"
     description: A Helm chart for Kubernetes
     digest: 250e112cddaa38ba75279e44c712fd9099256c5ccdaa1504a65b6e796c9e2887
     home: https://github.com/ibm-cloud-architecture/refarch-cloudnative-kubernetes/tree/microprofile
@@ -34,4 +45,4 @@ entries:
     urls:
     - auth-0.0.1.tgz
     version: 0.0.1
-generated: "2019-10-03T16:17:02.469714-05:00"
+generated: "2019-11-19T16:05:24.651873-06:00"
