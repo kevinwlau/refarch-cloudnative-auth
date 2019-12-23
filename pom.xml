@@ -8,9 +8,9 @@
 
     <!-- contains default pluginManagement configuration for liberty-maven-plugin -->
     <parent>
-        <groupId>net.wasdev.wlp.maven.parent</groupId>
+        <groupId>io.openliberty.tools</groupId>
         <artifactId>liberty-maven-app-parent</artifactId>
-        <version>2.1.2</version>
+        <version>3.1</version>
     </parent>
 
     <properties>
@@ -23,14 +23,21 @@
         <testServerHttpPort>9080</testServerHttpPort>
         <testServerHttpsPort>9443</testServerHttpsPort>
         <warContext>${app.name}</warContext>
-        <package.file>${project.build.directory}/${project.artifactId}-${project.version}.zip</package.file>
-        <packaging.type>usr</packaging.type>
+        <package.name>${project.artifactId}-${project.version}</package.name>
+        <package.type>zip</package.type>
+        <include>usr</include>
         <groupId.liberty-runtime>com.ibm.websphere.appserver.runtime</groupId.liberty-runtime>
         <artifactId.liberty-runtime>wlp-webProfile8</artifactId.liberty-runtime>
         <version.liberty-runtime>19.0.0.9</version.liberty-runtime>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.openliberty.tools</groupId>
+            <artifactId>liberty-maven-plugin</artifactId>
+            <version>3.1</version>
+            <type>maven-plugin</type>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -125,20 +132,22 @@
             </plugin>
             <!-- Enable liberty-maven plugin -->
             <plugin>
-                <groupId>net.wasdev.wlp.maven.plugins</groupId>
+                <groupId>io.openliberty.tools</groupId>
                 <artifactId>liberty-maven-plugin</artifactId>
+                <version>3.1</version>
                 <configuration>
-                    <assemblyArtifact>
+                    <runtimeArtifact>
                         <groupId>${groupId.liberty-runtime}</groupId>
                         <artifactId>${artifactId.liberty-runtime}</artifactId>
                         <version>${version.liberty-runtime}</version>
                         <type>zip</type>
-                    </assemblyArtifact>
-                    <configFile>${basedir}/src/main/liberty/config/server.xml</configFile>
-                    <serverEnv>${basedir}/src/main/liberty/config/server.env</serverEnv>
+                    </runtimeArtifact>
+                    <serverXmlFile>${basedir}/src/main/liberty/config/server.xml</serverXmlFile>
+                    <serverEnvFile>${basedir}/src/main/liberty/config/server.env</serverEnvFile>
                     <jvmOptionsFile>${basedir}/src/main/liberty/config/jvm.options</jvmOptionsFile>
-                    <packageFile>${package.file}</packageFile>
-                    <include>${packaging.type}</include>
+                    <packageName>${package.name}</packageName>
+                    <packageType>${package.type}</packageType>
+                    <include>${include}</include>
                     <bootstrapProperties>
                         <app.location>${project.artifactId}-${project.version}.war</app.location>
                         <default.http.port>${testServerHttpPort}</default.http.port>
@@ -201,7 +210,7 @@
                 <pluginManagement>
                     <plugins>
                         <plugin>
-                            <groupId>net.wasdev.wlp.maven.plugins</groupId>
+                            <groupId>io.openliberty.tools</groupId>
                             <artifactId>liberty-maven-plugin</artifactId>
                             <configuration>
                                 <outputDirectory>/tmp/liberty</outputDirectory>

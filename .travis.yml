@@ -27,7 +27,7 @@ matrix:
       # Maven Build
       - mvn install
       # Start Application
-      - mvn liberty:start-server -DtestServerHttpPort=9083 -DtestServerHttpsPort=9444 -DjwksIssuer=https://localhost:9444/oidc/endpoint/OP
+      - mvn liberty:start -DtestServerHttpPort=9083 -DtestServerHttpsPort=9444 -DjwksIssuer=https://localhost:9444/oidc/endpoint/OP
       # Wait for the Auth container to start accepting connections
       - sleep 25
       # Run Auth API Test
