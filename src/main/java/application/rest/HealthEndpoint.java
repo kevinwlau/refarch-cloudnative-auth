@@ -2,11 +2,11 @@ package application.rest;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.eclipse.microprofile.health.Health;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Liveness;
 
-@Health
+@Liveness
 @ApplicationScoped
 public class HealthEndpoint implements HealthCheck {
 
